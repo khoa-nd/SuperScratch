@@ -1,0 +1,1159 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nhiệm Vụ Vũ Trụ: Vòng Lặp Repeat Until</title>
+<style>
+  :root {
+    --scratch-orange: #ff8c1a;
+    --scratch-orange-dark: #db6e00;
+    --scratch-yellow: #ffbf00;
+    --scratch-blue: #4c97ff;
+    --scratch-green: #4cbf56;
+    --scratch-purple: #9966ff;
+    --scratch-pink: #ff6680;
+    --bg: #fff7e6;
+    --paper: #ffffff;
+    --ink: #2b2b3b;
+    --ink-soft: #5a5a72;
+    --shadow: 0 6px 0 rgba(0, 0, 0, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Comic Sans MS", "Chalkboard SE", "Trebuchet MS", sans-serif;
+    line-height: 1.55;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(circle at 10% 20%, rgba(76, 151, 255, 0.08) 0 30px, transparent 31px),
+      radial-gradient(circle at 90% 60%, rgba(153, 102, 255, 0.08) 0 40px, transparent 41px),
+      radial-gradient(circle at 50% 90%, rgba(76, 191, 86, 0.08) 0 25px, transparent 26px);
+  }
+
+  .container {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 30px 22px 80px;
+  }
+
+  /* Cockpit / Command Header */
+  .cockpit-header {
+    background: linear-gradient(135deg, #ffd166 0%, #ff8c1a 100%);
+    border: 0;
+    border-radius: 28px;
+    padding: 36px 28px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    color: white;
+  }
+  .cockpit-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.4) 0 8px, transparent 9px),
+      radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.3) 0 12px, transparent 13px),
+      radial-gradient(circle at 30% 80%, rgba(255, 255, 255, 0.25) 0 10px, transparent 11px),
+      radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.3) 0 6px, transparent 7px);
+    pointer-events: none;
+  }
+
+  .hud-tag {
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: inline-block;
+    border: 2px solid rgba(255,255,255,.75);
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.18);
+    position: relative;
+  }
+
+  .cockpit-header h1 {
+    margin: 10px 0;
+    font-size: clamp(28px, 5.5vw, 52px);
+    text-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
+    letter-spacing: 1px;
+    position: relative;
+  }
+
+  .cockpit-header p {
+    font-size: clamp(16px, 2.5vw, 22px);
+    color: white;
+    max-width: 800px;
+    margin: 15px auto 0;
+  }
+
+  .control-nav {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 30px;
+  }
+  .control-nav a {
+    color: var(--scratch-orange-dark);
+    background: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 999px;
+    border: 2px solid var(--scratch-orange);
+    box-shadow: 0 3px 0 var(--scratch-orange-dark);
+    transition: all 0.1s ease;
+    font-size: 15px;
+  }
+  .control-nav a:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--scratch-orange-dark);
+  }
+
+  /* Section Styles */
+  section {
+    background: var(--paper);
+    border: 3px solid #ffe6c0;
+    border-radius: 22px;
+    padding: 26px 26px 28px;
+    margin-top: 28px;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  section::after {
+    display: none;
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: clamp(22px, 3.4vw, 30px);
+    color: var(--scratch-orange-dark);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  .sec-badge {
+    background: var(--scratch-orange);
+    color: white;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-family: "Trebuchet MS", sans-serif;
+    box-shadow: 0 4px 0 var(--scratch-orange-dark);
+  }
+  h2 .num {
+    display: inline-flex;
+    width: 38px;
+    height: 38px;
+    background: var(--scratch-orange);
+    color: white;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 4px 0 var(--scratch-orange-dark);
+  }
+
+  p, li {
+    font-size: 17px;
+    color: var(--ink);
+  }
+  .intro-text {
+    font-size: 21px;
+    color: var(--ink);
+  }
+
+  /* Fun Info Box */
+  .info-box {
+    border-left: 6px solid var(--scratch-green);
+    background: #e6f8e8;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 20px 0;
+  }
+  .info-box.alert {
+    border-left-color: var(--scratch-pink);
+    background: #ffe6ec;
+  }
+  .info-box.orange {
+    border-left-color: var(--scratch-yellow);
+    background: #fff3d6;
+  }
+
+  .grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media(max-width: 780px) {
+    .grid-layout { grid-template-columns: 1fr; }
+  }
+
+  /* Sound Switch HUD */
+  .hud-console {
+    background: #fff3d6;
+    border: 3px solid #ffe6c0;
+    border-radius: 16px;
+    padding: 12px 20px;
+    margin: 15px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow);
+    color: var(--ink);
+  }
+  .sound-btn {
+    background: white;
+    border: 2px solid var(--scratch-orange);
+    color: var(--scratch-orange-dark);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    box-shadow: 0 3px 0 var(--scratch-orange-dark);
+  }
+  .sound-btn.active {
+    background: var(--scratch-green);
+    border-color: var(--scratch-green);
+    color: white;
+    box-shadow: 0 3px 0 #2f8a3a;
+  }
+
+  /* Scratch CSS Blocks 3.0 */
+  .scratch-canvas {
+    background: #fafafa;
+    border: 2px dashed #e1d5b8;
+    border-radius: 14px;
+    padding: 16px;
+    display: inline-block;
+    max-width: 100%;
+    overflow: auto;
+  }
+  .blocks {
+    display: inline-flex;
+    flex-direction: column;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: bold;
+    font-size: 14px;
+    color: white;
+  }
+  .block {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    min-height: 32px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  }
+  .event { background: #ffbf00; color: #573e00; }
+  .motion { background: var(--scratch-blue); }
+  .looks { background: var(--scratch-purple); }
+  .sensing { background: #5cb1d6; }
+  .variables { background: var(--scratch-orange); }
+  .c-block {
+    display: inline-flex;
+    flex-direction: column;
+    background: var(--scratch-orange);
+    border-radius: 4px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: bold;
+    font-size: 14px;
+    color: white;
+  }
+  .c-top, .c-bottom {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .c-body {
+    border-left: 14px solid var(--scratch-orange);
+    padding: 4px 4px 4px 16px;
+  }
+  .c-bottom {
+    background: #d96f00;
+    min-height: 20px;
+    border-radius: 0 0 4px 4px;
+  }
+  .input-oval {
+    background: white;
+    color: black;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 13px;
+  }
+  .input-hex {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    padding: 2px 12px;
+    transform: skewX(-20deg);
+    font-size: 13px;
+  }
+  .input-hex span {
+    display: inline-block;
+    transform: skewX(20deg);
+  }
+
+  /* Interactive Demos */
+  .canvas-panel {
+    background: #f7faff;
+    border: 3px solid #d6e7ff;
+    border-radius: 16px;
+    padding: 14px;
+    margin-top: 12px;
+    box-shadow: none;
+  }
+  .canvas-panel canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: white;
+    border-radius: 10px;
+    border: 0;
+  }
+  .hud-controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 12px;
+  }
+  .btn-hud {
+    border: none;
+    border-radius: 999px;
+    padding: 10px 22px;
+    font-family: inherit;
+    font-weight: bold;
+    font-size: 15px;
+    color: white;
+    background: var(--scratch-green);
+    box-shadow: 0 4px 0 #2f8a3a;
+    cursor: pointer;
+  }
+  .btn-hud:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #2f8a3a;
+  }
+  .btn-hud.green {
+    background: var(--scratch-green);
+    box-shadow: 0 4px 0 #2f8a3a;
+  }
+  .btn-hud.green:active {
+    box-shadow: 0 2px 0 #2f8a3a;
+  }
+  .btn-hud.pink {
+    background: var(--scratch-pink);
+    color: white;
+    box-shadow: 0 4px 0 #b30059;
+  }
+  .btn-hud.pink:active {
+    box-shadow: 0 2px 0 #b30059;
+  }
+  .hud-status {
+    background: #fff;
+    border: 2px solid #d6e7ff;
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--ink-soft);
+  }
+
+  /* Comparison Layout */
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+  @media(max-width: 850px) {
+    .comparison-grid { grid-template-columns: 1fr; }
+  }
+  .comp-card {
+    background: #fafafa;
+    border: 0;
+    border-radius: 16px;
+    padding: 16px;
+    border-top: 8px solid var(--scratch-orange);
+  }
+  .comp-card.green { border-top-color: var(--scratch-green); }
+  .comp-card.cyan { border-top-color: var(--scratch-blue); }
+  .comp-card h3 { margin: 0 0 10px; color: var(--ink); font-size: 20px; }
+
+  /* Quiz Interactive */
+  .quiz-section .q-box {
+    background: #fafafa;
+    border: 2px solid #f0e3c2;
+    border-radius: 14px;
+    padding: 14px;
+    margin: 15px 0;
+  }
+  .quiz-section label {
+    display: block;
+    background: white;
+    border: 2px solid #eee;
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin: 8px 0;
+    cursor: pointer;
+    transition: all 0.1s ease;
+  }
+  .quiz-section label:hover {
+    border-color: var(--scratch-blue);
+    background: white;
+  }
+  .quiz-feedback {
+    min-height: 25px;
+    font-weight: bold;
+    font-size: 15px;
+  }
+  .quiz-feedback.right { color: var(--scratch-green); }
+  .quiz-feedback.wrong { color: var(--scratch-pink); }
+
+  /* Video prompts HUD */
+  .prompt-box {
+    background: #f0e6ff;
+    border: 3px dashed var(--scratch-purple);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin: 20px 0;
+  }
+  .prompt-box h3 {
+    margin-top: 0;
+    color: var(--scratch-blue);
+  }
+  textarea {
+    width: 100%;
+    min-height: 120px;
+    background: white;
+    color: var(--ink);
+    border: 2px solid #d4c2ff;
+    border-radius: 10px;
+    padding: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: none;
+  }
+  .copy-btn {
+    background: var(--scratch-purple);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 10px;
+    box-shadow: 0 3px 0 #6b3fcc;
+  }
+
+  /* Logic Flow Loop Diagram */
+  .flow-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 20px 0;
+    background: #fff3d6;
+    padding: 14px;
+    border-radius: 16px;
+    border: 2px dashed #e1d5b8;
+  }
+  .flow-step {
+    flex: 1;
+    background: white;
+    border: 2px solid var(--scratch-blue);
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+    color: var(--ink);
+    font-size: 14px;
+  }
+  .flow-step.orange {
+    border-color: var(--scratch-yellow);
+    background: #fff3d6;
+  }
+  .flow-step.green {
+    border-color: var(--scratch-green);
+    background: #e6f8e8;
+  }
+  .flow-arrow {
+    color: var(--scratch-orange-dark);
+    font-weight: bold;
+    font-size: 24px;
+  }
+  @media(max-width: 600px) {
+    .flow-box { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); margin: 5px 0; }
+  }
+
+  .footer-hud {
+    text-align: center;
+    margin-top: 50px;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HUD Control Cockpit Header -->
+  <header class="cockpit-header">
+    <div class="hud-tag">Hệ Thống Dạy Học Scratch v3.5</div>
+    <h1>Khám Phá Vòng Lặp:<br>Repeat Until (Lặp Cho Đến Khi)</h1>
+    <p>Chào mừng chiến binh vũ trụ nhỏ! Hôm nay chúng ta sẽ lập trình bộ não cho tàu vũ trụ và robot tự động dừng lại khi hoàn thành nhiệm vụ.</p>
+    <div class="control-nav">
+      <a href="#mission">1. Nhiệm Vụ</a>
+      <a href="#gate">2. Cổng logic</a>
+      <a href="#demos">3. Phòng thí nghiệm</a>
+      <a href="#build">4. Tự lập trình</a>
+      <a href="#quiz">5. Thử thách</a>
+      <a href="#video">6. Phim AI</a>
+    </div>
+  </header>
+
+  <!-- Interactive Sound Settings HUD -->
+  <div class="hud-console">
+    <span>🔊 Hiệu ứng âm thanh 8-bit tương tác:</span>
+    <button class="sound-btn active" id="toggleSound">ĐÃ BẬT ÂM THANH</button>
+  </div>
+
+  <!-- Mission Section -->
+  <section id="mission">
+    <h2><span class="sec-badge">1</span>Câu Chuyện Tàu Vũ Trụ 🚀</h2>
+    <p class="intro-text">Hãy tưởng tượng tàu vũ trụ của con đang bị cạn kiệt năng lượng giữa không gian và cần bay về trạm sạc.</p>
+    <div class="info-box orange">
+      <strong>Quy tắc của phi hành gia:</strong>
+      <p style="margin: 5px 0 0 0;">Con không biết trạm sạc cách bao xa (có thể là 50 bước, hoặc 200 bước). Nhưng có một quy tắc cực kỳ đơn giản:</p>
+      <p style="margin: 5px 0 0 0; font-weight: bold; color: var(--scratch-green);">"Cứ bay thẳng về phía trước... CHO ĐẾN KHI chạm vào Trạm sạc thì dừng lại!"</p>
+    </div>
+    <div class="grid-layout">
+      <div class="info-box">
+        <strong>Khi nào nên dùng Repeat Until?</strong>
+        <ul>
+          <li>Khi con KHÔNG biết trước mình phải lặp lại bao nhiêu lần.</li>
+          <li>Khi con có một điều kiện dừng rõ ràng (Ví dụ: Chạm vào đích).</li>
+        </ul>
+      </div>
+      <div class="info-box alert">
+        <strong>Ví dụ siêu vui trong đời sống thực:</strong>
+        <ul>
+          <li>Ăn kẹo <strong>cho đến khi</strong> hết sạch đĩa.</li>
+          <li>Bơm nước vào bóng <strong>cho đến khi</strong> bóng căng tròn.</li>
+          <li>Nhảy dây <strong>cho đến khi</strong> chân bị mỏi.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Decision Gate Logic -->
+  <section id="gate">
+    <h2><span class="sec-badge">2</span>Cổng Quy Quyết Định Logic 🚪</h2>
+    <p>Vòng lặp <strong>repeat until</strong> trong Scratch hoạt động giống như một chiếc máy soát vé thông minh ở cổng công viên. Cổng sẽ liên tục hỏi cùng một câu hỏi kiểm tra:</p>
+    
+    <div class="flow-box">
+      <div class="flow-step">1. Thực hiện các hành động bên trong</div>
+      <div class="flow-arrow">➔</div>
+      <div class="flow-step orange">2. Hỏi điều kiện dừng?</div>
+      <div class="flow-arrow">➔</div>
+      <div class="flow-step green">Chưa đúng (NO) ➔ Lặp lại!</div>
+      <div class="flow-arrow">➔</div>
+      <div class="flow-step green">Đúng rồi (YES) ➔ Thoát ra!</div>
+    </div>
+
+    <div class="grid-layout">
+      <div>
+        <h3>Khối lệnh dạng Scratch</h3>
+        <div class="scratch-canvas">
+          <div class="c-block">
+            <div class="c-top">repeat until <span class="input-hex"><span>touching station?</span></span></div>
+            <div class="c-body">
+              <div class="blocks">
+                <div class="block motion">move <span class="input-oval">10</span> steps</div>
+              </div>
+            </div>
+            <div class="c-bottom"></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3>Lắp ghép hoàn chỉnh</h3>
+        <div class="scratch-canvas">
+          <div class="blocks">
+            <div class="block event">when ⚑ clicked</div>
+            <div class="c-block">
+              <div class="c-top">repeat until <span class="input-hex"><span>touching station?</span></span></div>
+              <div class="c-body">
+                <div class="blocks">
+                  <div class="block motion">move <span class="input-oval">10</span> steps</div>
+                </div>
+              </div>
+              <div class="c-bottom"></div>
+            </div>
+            <div class="block looks">say <span class="input-oval">Đã sạc đầy năng lượng!</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Lab Demos -->
+  <section id="demos">
+    <h2><span class="sec-badge">3</span>Phòng Thí Nghiệm Vũ Trụ 🧪</h2>
+    <p>Hãy điều khiển các mô hình tương tác dưới đây để thấy vòng lặp kiểm tra điều kiện hoạt động thế nào nhé!</p>
+
+    <!-- Lab A: Mars Rover Beacon -->
+    <h3>Thử nghiệm A: Robot Dò Đường Cứu Hộ</h3>
+    <p>Robot Mars Rover cần đi men theo đường lưới không gian để về tới <strong>ĐÈN HÀO QUANG</strong> phát sáng.</p>
+    <div class="canvas-panel">
+      <canvas id="roverCanvas" width="960" height="300"></canvas>
+      <div class="hud-controls">
+        <button class="btn-hud green" id="roverStart">⚑ BẮT ĐẦU NHIỆM VỤ</button>
+        <button class="btn-hud pink" id="roverReset">ĐẶT LẠI</button>
+        <span class="hud-status" id="roverStatus">Đang đợi lệnh...</span>
+      </div>
+    </div>
+
+    <!-- Lab B: Solar charging station -->
+    <h3>Thử nghiệm B: Trạm Sạc Pin Mặt Trời</h3>
+    <p>Con hãy điều khiển cổng logic sạc pin. Đặc biệt: con có thể <strong>chọn trước mức sạc mục tiêu</strong> để robot tự dừng khi đạt mốc!</p>
+    <div class="canvas-panel">
+      <canvas id="batteryCanvas" width="960" height="240"></canvas>
+      <div class="hud-controls">
+        <span>Chọn mốc sạc dừng lặp:</span>
+        <select id="targetSelect" style="background:white; color:#2b2b3b; border:2px solid #d6e7ff; border-radius:8px; padding:6px; font-weight:bold;">
+          <option value="50">50% Pin</option>
+          <option value="80">80% Pin</option>
+          <option value="100" selected>100% Pin (Đầy)</option>
+        </select>
+        <button class="btn-hud green" id="batteryStart">⚑ BẮT ĐẦU SẠC</button>
+        <button class="btn-hud pink" id="batteryReset">ĐẶT LẠI PIN</button>
+        <span class="hud-status" id="batteryStatus">Trạng thái: 0%</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Three Loops Comparison -->
+  <section id="build">
+    <h2><span class="num">4</span>Nhận Diện Ba Anh Em Vòng Lặp 🧩</h2>
+    <p>Trong vũ trụ Scratch, có 3 anh em nhà vòng lặp. Hãy học cách phân biệt để chọn đúng khối lệnh cho trò chơi nhé:</p>
+    
+    <div class="comparison-grid">
+      <div class="comp-card cyan">
+        <h3>1. Repeat 10 (Lặp 10 lần)</h3>
+        <p>Lặp lại hành động với số lần chính xác được ghi sẵn.</p>
+        <div class="scratch-canvas" style="display:block; padding:10px;">
+          <div class="c-block">
+            <div class="c-top">repeat <span class="input-oval">10</span></div>
+            <div class="c-body"><div class="block motion">jump</div></div>
+            <div class="c-bottom"></div>
+          </div>
+        </div>
+        <p style="font-size:14px; margin-top:10px;"><strong>Khi nào dùng:</strong> Khi con biết rõ con số chính xác (ví dụ nhảy 10 cái).</p>
+      </div>
+
+      <div class="comp-card green">
+        <h3>2. Forever (Mãi mãi)</h3>
+        <p>Lặp lại hành động không bao giờ ngừng cho đến khi bấm nút dừng đỏ.</p>
+        <div class="scratch-canvas" style="display:block; padding:10px;">
+          <div class="c-block" style="background:var(--scratch-orange)">
+            <div class="c-top">forever</div>
+            <div class="c-body"><div class="block looks">change color</div></div>
+          </div>
+        </div>
+        <p style="font-size:14px; margin-top:10px;"><strong>Khi nào dùng:</strong> Các hành động chạy suốt cả trò chơi (ví dụ nhạc nền, trọng lực rơi).</p>
+      </div>
+
+      <div class="comp-card">
+        <h3>3. Repeat Until (Lặp cho đến khi)</h3>
+        <p>Hỏi một câu hỏi điều kiện ở cổng, lặp liên tục cho tới khi câu trả lời là ĐÚNG.</p>
+        <div class="scratch-canvas" style="display:block; padding:10px;">
+          <div class="c-block">
+            <div class="c-top">repeat until <span class="input-hex"><span>score = 10</span></span></div>
+            <div class="c-body"><div class="block motion">move 5 steps</div></div>
+            <div class="c-bottom"></div>
+          </div>
+        </div>
+        <p style="font-size:14px; margin-top:10px;"><strong>Khi nào dùng:</strong> Khi số lần lặp phụ thuộc vào hành động của người chơi hoặc kết quả game.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Quiz Challenge -->
+  <section id="quiz" class="quiz-section">
+    <h2><span class="sec-badge">5</span>Thử Thách Kiểm Tra Trí Tuệ 🧠</h2>
+    <p>Con hãy chọn đáp án đúng nhất để kiểm tra khả năng lập trình điều khiển thông thái của mình nào!</p>
+
+    <div class="q-box" data-correct="b">
+      <strong>Câu 1: Mẹ giao nhiệm vụ: "Hãy ăn hết đĩa rau này cho đến khi đĩa trống trơn". Đây là kiểu lặp nào?</strong>
+      <label><input type="radio" name="q1" value="a"> Vòng lặp Repeat 10</label>
+      <label><input type="radio" name="q1" value="b"> Vòng lặp Repeat Until (Đĩa trống trơn)</label>
+      <label><input type="radio" name="q1" value="c"> Vòng lặp Forever không bao giờ dừng</label>
+      <div class="quiz-feedback"></div>
+    </div>
+
+    <div class="q-box" data-correct="c">
+      <strong>Câu 2: Ô hình lục giác (diamond) ở trên đầu khối Repeat Until chứa loại thông tin gì?</strong>
+      <label><input type="radio" name="q2" value="a"> Một file âm thanh nhạc nền</label>
+      <label><input type="radio" name="q2" value="b"> Một con số cố định như số 5</label>
+      <label><input type="radio" name="q2" value="c"> Một câu hỏi kiểm tra Đúng/Sai (Điều kiện dừng)</label>
+      <div class="quiz-feedback"></div>
+    </div>
+
+    <div class="q-box" data-correct="a">
+      <strong>Câu 3: Con muốn nhân vật mèo kêu "Meo" đúng 5 lần rồi dừng hẳn. Con dùng khối nào thích hợp nhất?</strong>
+      <label><input type="radio" name="q3" value="a"> Khối Repeat 5</label>
+      <label><input type="radio" name="q3" value="b"> Khối Repeat Until</label>
+      <label><input type="radio" name="q3" value="c"> Khối Forever</label>
+      <div class="quiz-feedback"></div>
+    </div>
+
+    <div class="hud-controls">
+      <button class="btn-hud green" id="submitQuiz">NỘP BÀI KIỂM TRA</button>
+      <span class="hud-status" id="quizScoreDisplay">Điểm số của con: 0 / 3</span>
+    </div>
+  </section>
+
+  <!-- AI Video Generation Prompts -->
+  <section id="video">
+    <h2><span class="sec-badge">6</span>Ý Tưởng Video Minh Họa Bằng AI 🎬</h2>
+    <p>Nếu muốn tự tạo ra những đoạn video hoạt hình giải thích trực quan siêu đẹp cho bài học này, con hãy sao chép các mẫu <strong>Prompt (Câu lệnh vẽ)</strong> dưới đây rồi dán vào các công cụ tạo video AI như Runway Gen-2, Luma Dream Machine, Kling AI hay Sora nhé!</p>
+
+    <div class="prompt-box">
+      <h3>1. Video Ý Tưởng "Trạm Sạc Vũ Trụ"</h3>
+      <textarea readonly>Kid-friendly 3D sci-fi Pixar animation style. A cute small round robot with blinking blue eyes is flying through space on Mars. The background has red sand craters and twinkling colorful stars. The robot is moving step by step towards a glowing neon green energy solar station. Above the scene, a cartoon holographic screen flashes with the question "Touching station? ➔ NO" in bright red text. Each time it flashes NO, the robot fires tiny thrusters and hops closer. When it finally bumps softly into the green station, the holographic screen flashes "Touching station? ➔ YES" in neon green with sparkling stars, and the robot stops and makes a happy pose, waving at the camera. Extremely vivid colors, safe and playful kid atmosphere, 8 seconds, 16:9.</textarea>
+      <button class="copy-btn">Sao chép prompt</button>
+    </div>
+
+    <div class="prompt-box">
+      <h3>2. Video Hoạt Ảnh "Cổng Kiểm Tra C-Block"</h3>
+      <textarea readonly>2D educational game motion graphics for young children. An orange glowing Scratch-style C-block labeled "REPEAT UNTIL" acts as a physical glowing gate. A tiny glowing blue spaceship token enters the mouth of the block which contains a instruction panel reading "MOVE 10 STEPS". Inside the diamond hole at the top of the block, a yellow glowing radar scanner asks "Touch Beacon?". The radar flashes a red cross and "NO" sign, looping the spaceship inside the C-block again. After 3 loops, the scanner flashes a bright green checkmark and "YES" sign. The gate splits open with magical stars and soundwave rings, and the spaceship exits happily to the right. Smooth clean vector animations, cheerful mood, 7 seconds, 16:9.</textarea>
+      <button class="copy-btn">Sao chép prompt</button>
+    </div>
+  </section>
+
+  <p class="footer-hud">Phiên bản Gemini 3.5: Chủ đề Thám hiểm không gian. Được thiết kế đặc biệt và tối ưu hóa cho bài học Scratch của các lập trình viên nhí.</p>
+
+</div>
+
+<script>
+  const $=id=>document.getElementById(id);
+
+  /* Web Audio API Engine for 8-bit Retro Sounds */
+  let soundEnabled = true;
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  function playTone(freq, type, duration, delay=0) {
+    if (!soundEnabled) return;
+    setTimeout(() => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }, delay * 1000);
+  }
+
+  function soundTick() {
+    playTone(880, 'sine', 0.05);
+  }
+  function soundSuccess() {
+    playTone(523.25, 'square', 0.1, 0);
+    playTone(659.25, 'square', 0.1, 0.08);
+    playTone(783.99, 'square', 0.1, 0.16);
+    playTone(1046.50, 'square', 0.3, 0.24);
+  }
+  function soundReset() {
+    playTone(587.33, 'sawtooth', 0.15, 0);
+    playTone(293.66, 'sawtooth', 0.25, 0.1);
+  }
+  function soundCorrect() {
+    playTone(880, 'triangle', 0.08, 0);
+    playTone(1320, 'triangle', 0.2, 0.08);
+  }
+  function soundWrong() {
+    playTone(220, 'sawtooth', 0.3, 0);
+    playTone(180, 'sawtooth', 0.3, 0.1);
+  }
+
+  $('toggleSound').onclick = () => {
+    soundEnabled = !soundEnabled;
+    if (soundEnabled) {
+      $('toggleSound').className = 'sound-btn active';
+      $('toggleSound').textContent = 'ĐÃ BẬT ÂM THANH';
+      // unlock context
+      if(audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    } else {
+      $('toggleSound').className = 'sound-btn';
+      $('toggleSound').textContent = 'ĐÃ TẮT ÂM THANH';
+    }
+  };
+
+  /* Helper function to draw rounded boxes with customizable radius */
+  function drawRoundedBox(ctx, x, y, w, h, r, fill, stroke, strokeWidth=1) {
+    ctx.fillStyle = fill;
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = strokeWidth;
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, r);
+    ctx.fill();
+    if(stroke) ctx.stroke();
+  }
+
+  /* Vector Drawing function for the HUD Floating Check Badge */
+  function drawHudBadge(ctx, x, y, text, isYes) {
+    ctx.font = "bold 15px 'Comic Sans MS', sans-serif";
+    const padding = 16;
+    const badgeW = ctx.measureText(text).width + padding * 2;
+    const badgeH = 34;
+
+    const bg = isYes ? "#e6f8e8" : "#ffe6ec";
+    const border = isYes ? "#4cbf56" : "#ff6680";
+    
+    drawRoundedBox(ctx, x, y, badgeW, badgeH, 10, bg, border, 2);
+    
+    ctx.fillStyle = "#2b2b3b";
+    ctx.fillText(text, x + padding, y + 22);
+  }
+
+  /* Draw a beautiful vector space rover robot */
+  function drawVectorRover(ctx, x, y, frame) {
+    // wheels
+    ctx.fillStyle = "#1e293b";
+    ctx.strokeStyle = "#4c97ff";
+    ctx.lineWidth = 2;
+    const wheelOffset = Math.sin(frame * 0.4) * 3;
+    
+    // 3 wheels
+    ctx.beginPath(); ctx.arc(x - 18, y + 22 + wheelOffset, 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y + 24 - wheelOffset, 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x + 18, y + 22 + wheelOffset, 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+    // metal body
+    drawRoundedBox(ctx, x - 26, y - 18, 52, 36, 8, "#4c97ff", "#2c6cc1", 2);
+
+    // energy core window
+    const coreGlow = Math.abs(Math.sin(frame * 0.1)) * 0.8 + 0.2;
+    ctx.fillStyle = `rgba(255, 191, 0, ${coreGlow})`;
+    ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
+
+    // neck & radar head
+    ctx.strokeStyle = "#2b2b3b";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 18);
+    ctx.lineTo(x, y - 30);
+    ctx.stroke();
+
+    drawRoundedBox(ctx, x - 12, y - 42, 24, 14, 4, "#fff3d6", "#4cbf56", 2);
+
+    // neon eye sensor
+    ctx.fillStyle = "#4cbf56";
+    ctx.beginPath();
+    ctx.arc(x, y - 35, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  /* --------------------------------------------------------------------------
+     Demo A: Mars Rover Beacon Path
+     -------------------------------------------------------------------------- */
+  (function(){
+    const c = $('roverCanvas');
+    const ctx = c.getContext('2d');
+    
+    // Grid checkpoints path
+    const path = [
+      [80, 210], [180, 210], [280, 210], [380, 210],
+      [380, 110], [480, 110], [580, 110], [680, 110],
+      [680, 210], [780, 210], [880, 210]
+    ];
+    
+    let pathIndex = 0;
+    let frame = 0;
+    let isRunning = false;
+    let done = false;
+    let loopTimer = null;
+
+    function render() {
+      ctx.clearRect(0, 0, c.width, c.height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      // holographic background grid lines
+      ctx.strokeStyle = "rgba(76, 151, 255, 0.12)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x < c.width; x += 50) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, c.height); ctx.stroke();
+      }
+      for (let y = 0; y < c.height; y += 50) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(c.width, y); ctx.stroke();
+      }
+
+      // draw path line
+      ctx.strokeStyle = "rgba(76, 151, 255, 0.35)";
+      ctx.lineWidth = 8;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.moveTo(path[0][0], path[0][1]);
+      for (let p of path) {
+        ctx.lineTo(p[0], p[1]);
+      }
+      ctx.stroke();
+
+      // Draw Mars rescue Beacon (target)
+      const beaconGlow = Math.abs(Math.sin(frame * 0.15)) * 15 + 10;
+      const grad = ctx.createRadialGradient(880, 210, 2, 880, 210, beaconGlow * 1.8);
+      grad.addColorStop(0, "#4cbf56");
+      grad.addColorStop(1, "rgba(76, 191, 86, 0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(880, 210, beaconGlow * 1.8, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = "#4cbf56";
+      ctx.beginPath(); ctx.arc(880, 210, 10, 0, Math.PI * 2); ctx.fill();
+
+      // Rover position
+      const pos = path[pathIndex];
+      drawVectorRover(ctx, pos[0], pos[1], frame);
+
+      // HUD condition logic badge
+      drawHudBadge(ctx, 30, 25, 
+        done ? "touching beacon? ➔ ĐÚNG RỒI! (DỪNG LẠI)" : "touching beacon? ➔ chưa chạm (LẶP TIẾP)", 
+        done
+      );
+
+      frame++;
+    }
+
+    function runLoop() {
+      if (!isRunning) return;
+      
+      // Stop rule check
+      if (pathIndex >= path.length - 1) {
+        isRunning = false;
+        done = true;
+        soundSuccess();
+        $('roverStatus').textContent = "Hoàn thành! Đã chạm đèn hiệu. Vòng lặp dừng.";
+        render();
+        return;
+      }
+
+      pathIndex++;
+      soundTick();
+      $('roverStatus').textContent = `Bước lặp thứ ${pathIndex}: Vẫn tiếp tục đi...`;
+      render();
+      loopTimer = setTimeout(runLoop, 600);
+    }
+
+    $('roverStart').onclick = () => {
+      if (isRunning) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (done) {
+        pathIndex = 0;
+        done = false;
+      }
+      isRunning = true;
+      runLoop();
+    };
+
+    $('roverReset').onclick = () => {
+      clearTimeout(loopTimer);
+      pathIndex = 0;
+      isRunning = false;
+      done = false;
+      soundReset();
+      $('roverStatus').textContent = "Đã đặt lại vị trí xuất phát.";
+      render();
+    };
+
+    // start anim render loop
+    setInterval(() => {
+      if (!isRunning) render();
+    }, 60);
+
+    render();
+  })();
+
+  /* --------------------------------------------------------------------------
+     Demo B: Solar Charging Station
+     -------------------------------------------------------------------------- */
+  (function(){
+    const c = $('batteryCanvas');
+    const ctx = c.getContext('2d');
+    
+    let currentBattery = 0;
+    let isCharging = false;
+    let done = false;
+    let chargeTimer = null;
+    let frame = 0;
+
+    function render() {
+      ctx.clearRect(0, 0, c.width, c.height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      // background neon HUD box
+      drawRoundedBox(ctx, 240, 60, 480, 100, 15, "#f7faff", "#d6e7ff", 3);
+      
+      // battery dynamic filling
+      const fillW = 464 * (currentBattery / 100);
+      const color = currentBattery >= 100 ? "#4cbf56" : (currentBattery >= 60 ? "#ffbf00" : "#ff6680");
+      drawRoundedBox(ctx, 248, 68, fillW, 84, 8, color, null);
+
+      // digital battery percent readout
+      ctx.fillStyle = "#2b2b3b";
+      ctx.font = "bold 32px 'Comic Sans MS', sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(currentBattery + "% Pin", 480, 122);
+      ctx.textAlign = "left";
+
+      // HUD condition logic badge
+      const targetPercent = parseInt($('targetSelect').value);
+      const isMet = currentBattery >= targetPercent;
+      drawHudBadge(ctx, 30, 15, 
+        isMet ? `battery = ${targetPercent}? ➔ ĐỦ PIN! (DỪNG)` : `battery = ${targetPercent}? ➔ chưa đủ (SẠC TIẾP)`, 
+        isMet
+      );
+
+      frame++;
+    }
+
+    function runCharge() {
+      if (!isCharging) return;
+      const targetPercent = parseInt($('targetSelect').value);
+
+      // Stop condition evaluation
+      if (currentBattery >= targetPercent) {
+        isCharging = false;
+        done = true;
+        soundSuccess();
+        $('batteryStatus').textContent = `Đã đạt mốc ${targetPercent}%. Vòng lặp dừng lại.`;
+        render();
+        return;
+      }
+
+      currentBattery += 10;
+      if(currentBattery > 100) currentBattery = 100;
+      soundTick();
+      $('batteryStatus').textContent = `Đang sạc... Đã nạp được ${currentBattery}%`;
+      render();
+      chargeTimer = setTimeout(runCharge, 400);
+    }
+
+    $('batteryStart').onclick = () => {
+      if (isCharging) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (done || currentBattery >= 100) {
+        currentBattery = 0;
+        done = false;
+      }
+      isCharging = true;
+      runCharge();
+    };
+
+    $('batteryReset').onclick = () => {
+      clearTimeout(chargeTimer);
+      currentBattery = 0;
+      isCharging = false;
+      done = false;
+      soundReset();
+      $('batteryStatus').textContent = "Pin đã xả về 0%.";
+      render();
+    };
+
+    setInterval(() => {
+      if (!isCharging) render();
+    }, 60);
+
+    render();
+  })();
+
+  /* --------------------------------------------------------------------------
+     Interactive Quiz Dashboard Logic
+     -------------------------------------------------------------------------- */
+  $('submitQuiz').onclick = () => {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    const boxes = document.querySelectorAll('.q-box');
+    let totalScore = 0;
+
+    boxes.forEach(box => {
+      const checked = box.querySelector('input:checked');
+      const correctVal = box.dataset.correct;
+      const feedback = box.querySelector('.quiz-feedback');
+
+      if (!checked) {
+        feedback.textContent = "Xin hãy chọn một câu trả lời cho câu hỏi này!";
+        feedback.className = "quiz-feedback wrong";
+        return;
+      }
+
+      if (checked.value === correctVal) {
+        totalScore++;
+        feedback.textContent = "Chính xác tuyệt đối! Con làm rất tốt.";
+        feedback.className = "quiz-feedback right";
+      } else {
+        feedback.textContent = "Chưa đúng lắm. Hãy suy nghĩ kỹ và chọn lại nhé!";
+        feedback.className = "quiz-feedback wrong";
+      }
+    });
+
+    $('quizScoreDisplay').textContent = `Điểm số của con: ${totalScore} / ${boxes.length}`;
+
+    if (totalScore === boxes.length) {
+      soundCorrect();
+      $('quizScoreDisplay').textContent += " ➔ Siêu sao lập trình vũ trụ!";
+    } else {
+      soundWrong();
+    }
+  };
+
+  /* Copy prompts to clipboard utility */
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.onclick = async () => {
+      const txt = btn.parentElement.querySelector('textarea').value;
+      try {
+        await navigator.clipboard.writeText(txt);
+        btn.textContent = "Đã sao chép!";
+        btn.style.background = "#39ff14";
+        btn.style.color = "#000";
+        setTimeout(() => {
+          btn.textContent = "Sao chép prompt";
+          btn.style.background = "var(--scratch-purple)";
+          btn.style.color = "#fff";
+        }, 1500);
+      } catch (err) {
+        // fallback
+        btn.parentElement.querySelector('textarea').select();
+        document.execCommand('copy');
+      }
+    };
+  });
+</script>
+</body>
+</html>

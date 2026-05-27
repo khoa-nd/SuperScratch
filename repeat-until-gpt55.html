@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repeat Until: Nhiệm vụ giải cứu robot</title>
+<style>
+  :root{
+    --space:#07111f;--panel:#10243d;--panel2:#173250;--cyan:#39d5ff;--lime:#b7ff4a;--amber:#ffbf3d;--red:#ff5876;--white:#f4fbff;--muted:#a9bed0;
+    --scratch:#ff8c1a;--blue:#4c97ff;--green:#4cbf56;--purple:#9966ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--space);color:var(--white);font-family:"Trebuchet MS",Verdana,sans-serif;line-height:1.55;overflow-x:hidden}
+  body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 12% 18%,rgba(57,213,255,.22) 0 2px,transparent 3px),radial-gradient(circle at 77% 11%,rgba(183,255,74,.2) 0 2px,transparent 3px),radial-gradient(circle at 52% 72%,rgba(255,191,61,.18) 0 2px,transparent 3px),linear-gradient(135deg,rgba(57,213,255,.08),transparent 35%,rgba(255,88,118,.05));background-size:180px 180px,230px 230px,260px 260px,100% 100%}
+  .wrap{max-width:1120px;margin:auto;padding:28px 18px 80px;position:relative}
+  .hero{border:2px solid rgba(57,213,255,.45);border-radius:30px;padding:34px 26px;background:linear-gradient(145deg,rgba(16,36,61,.94),rgba(7,17,31,.94));box-shadow:0 0 40px rgba(57,213,255,.18),inset 0 0 40px rgba(57,213,255,.08);position:relative;overflow:hidden}
+  .hero:after{content:"";position:absolute;right:-90px;top:-80px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,var(--cyan),transparent 60%);opacity:.16}.kicker{color:var(--lime);font-weight:900;letter-spacing:.16em;text-transform:uppercase;font-size:13px}.hero h1{margin:8px 0 10px;font-size:clamp(34px,7vw,72px);line-height:.98;font-family:Georgia,serif}.hero p{max-width:760px;font-size:clamp(18px,2.6vw,24px);color:#dff7ff}.nav{display:flex;gap:9px;flex-wrap:wrap;margin-top:22px}.nav a{color:var(--space);background:var(--cyan);text-decoration:none;border-radius:999px;padding:8px 13px;font-weight:900;box-shadow:0 4px 0 #137491}
+  section{margin-top:28px;border:1px solid rgba(57,213,255,.32);background:linear-gradient(180deg,rgba(16,36,61,.92),rgba(12,26,44,.92));border-radius:24px;padding:24px;box-shadow:0 12px 35px rgba(0,0,0,.28)}
+  h2{margin:0 0 14px;font-size:clamp(26px,4vw,40px);font-family:Georgia,serif;color:#e9fbff}.num{display:inline-grid;place-items:center;width:43px;height:43px;border-radius:14px;background:var(--lime);color:var(--space);font-family:Trebuchet MS;font-weight:900;margin-right:10px;box-shadow:0 5px 0 #78a931}h3{color:var(--cyan);font-size:23px;margin:23px 0 9px}p,li{font-size:18px;color:#dcebf5}.big{font-size:22px}.mission{border-left:6px solid var(--lime);background:rgba(183,255,74,.09);border-radius:16px;padding:15px 17px;margin:15px 0}.mission.warn{border-color:var(--amber);background:rgba(255,191,61,.1)}.mission.red{border-color:var(--red);background:rgba(255,88,118,.1)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:780px){.grid{grid-template-columns:1fr}}
+  .blockshell{display:inline-block;background:#07111f;border:1px dashed rgba(255,255,255,.25);border-radius:16px;padding:16px;max-width:100%;overflow:auto}.blocks{display:inline-flex;flex-direction:column;font-family:Arial,sans-serif;font-weight:700;color:white;font-size:15px}.block{display:flex;gap:7px;align-items:center;min-height:32px;padding:8px 14px;border-radius:6px;box-shadow:inset 0 2px 0 rgba(255,255,255,.18),inset 0 -2px 0 rgba(0,0,0,.2)}.event{background:#ffbf00;color:#4b3400}.motion{background:var(--blue)}.look{background:var(--purple)}.sense{background:#5cb1d6}.var{background:#ff8c1a}.control{background:var(--scratch)}.input{background:white;color:#111;border-radius:999px;padding:2px 10px}.diamond{display:inline-block;background:rgba(0,0,0,.28);padding:3px 16px;border-radius:5px;transform:skewX(-25deg)}.diamond span{display:inline-block;transform:skewX(25deg)}.cblock{display:inline-flex;flex-direction:column;background:var(--scratch);border-radius:6px;color:white;font-family:Arial,sans-serif;font-weight:700;font-size:15px}.ctop,.cbot{padding:8px 14px;display:flex;gap:8px;align-items:center}.cbody{border-left:16px solid var(--scratch);padding:5px 5px 5px 24px}.cbot{background:#d96f00;min-height:23px;border-radius:0 0 6px 6px}
+  .diagram{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:18px 0}.cell{min-height:82px;border:1px solid rgba(57,213,255,.35);border-radius:14px;background:rgba(255,255,255,.04);display:grid;place-items:center;text-align:center;padding:8px;font-weight:900;color:#c8eeff}.cell.hot{background:rgba(255,88,118,.16);border-color:var(--red)}.cell.good{background:rgba(183,255,74,.14);border-color:var(--lime);color:#efffd6}.cell.robot{background:rgba(57,213,255,.2);border-color:var(--cyan)}
+  .canvasBox{background:#07111f;border:1px solid rgba(57,213,255,.35);border-radius:20px;padding:14px;margin-top:12px}.canvasBox canvas{display:block;width:100%;height:auto;background:#08172b;border-radius:14px;border:1px solid rgba(255,255,255,.13)}.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}.btn{border:0;border-radius:999px;padding:10px 16px;font-weight:900;font-family:inherit;background:var(--lime);color:var(--space);box-shadow:0 4px 0 #77a72f;cursor:pointer}.btn.cyan{background:var(--cyan);box-shadow:0 4px 0 #137491}.btn.red{background:var(--red);color:white;box-shadow:0 4px 0 #a82c43}.status{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 13px;color:#dcebf5;font-weight:900}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}@media(max-width:850px){.cards{grid-template-columns:1fr}}.card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:16px}.card h3{margin-top:0}.quiz .q{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:15px;margin:12px 0}.quiz label{display:block;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:13px;padding:9px 12px;margin:8px 0;cursor:pointer}.feedback{min-height:25px;font-weight:900}.right{color:var(--lime)}.wrong{color:var(--red)}pre{background:#020811;color:#e7fbff;border-radius:16px;padding:16px;overflow:auto;border:1px solid rgba(57,213,255,.25)}textarea{width:100%;min-height:120px;background:#020811;color:#e7fbff;border:1px solid rgba(57,213,255,.35);border-radius:14px;padding:12px;font-family:Menlo,monospace}.copy{margin-top:8px;border:0;border-radius:999px;background:var(--cyan);color:#06101d;font-weight:900;padding:9px 14px}.foot{text-align:center;color:var(--muted);margin-top:28px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div class="kicker">Nhiệm vụ Scratch Control</div>
+  <h1>Repeat Until:<br>Giải cứu robot</h1>
+  <p>Robot bị kẹt trên Sao Hỏa. Đoạn code của con phải giữ robot đi tiếp <strong>cho đến khi</strong> nó chạm vào đèn hiệu giải cứu.</p>
+  <nav class="nav"><a href="#mission">Nhiệm vụ</a><a href="#gate">Cổng</a><a href="#map">Bản đồ</a><a href="#demos">Ví dụ</a><a href="#build">Lập trình</a><a href="#quiz">Đố vui</a><a href="#video">Video</a></nav>
+</header>
+
+<section id="mission">
+  <h2><span class="num">1</span>Tóm tắt nhiệm vụ</h2>
+  <p class="big">Robot không biết cần đi bao nhiêu bước. Robot chỉ biết mục tiêu: <strong>dừng lại khi chạm vào đèn hiệu</strong>.</p>
+  <div class="mission">Lệnh: <strong>repeat walking until beacon is touched</strong>. Nếu chưa chạm đèn hiệu, tiếp tục đi. Nếu đã chạm đèn hiệu, dừng lại và ăn mừng.</div>
+  <div class="grid">
+    <div class="mission warn"><strong>Dùng repeat until khi:</strong><ul><li>Không biết chính xác cần lặp bao nhiêu lần.</li><li>Biết quy tắc để dừng lại.</li><li>Có thứ gì đó thay đổi trong game.</li><li>Hành động của người chơi quyết định lúc kết thúc.</li></ul></div>
+    <div class="mission red"><strong>Không nên dùng khi:</strong><ul><li>Con biết số lần chính xác: dùng <strong>repeat 10</strong>.</li><li>Con không bao giờ muốn dừng: dùng <strong>forever</strong>.</li><li>Không có gì bên trong vòng lặp làm thay đổi điều kiện. Code có thể bị kẹt mãi mãi.</li></ul></div>
+  </div>
+</section>
+
+<section id="gate">
+  <h2><span class="num">2</span>Cổng quyết định</h2>
+  <p>Hãy tưởng tượng <strong>repeat until</strong> như một cổng bảo vệ. Cổng hỏi cùng một câu hỏi lặp đi lặp lại.</p>
+  <div class="diagram" aria-label="sơ đồ repeat until">
+    <div class="cell robot">1<br>Làm các block bên trong</div><div class="cell">→</div><div class="cell hot">2<br>Hỏi điều kiện?</div><div class="cell">NO<br>quay lại</div><div class="cell good">YES<br>thoát vòng lặp</div>
+  </div>
+  <div class="blockshell"><div class="blocks"><div class="block event">when ⚑ clicked</div></div><div class="cblock"><div class="ctop">repeat until <span class="diamond"><span>touching beacon?</span></span></div><div class="cbody"><div class="blocks"><div class="block motion">move <span class="input">10</span> steps</div><div class="block look">say <span class="input">searching...</span></div></div></div><div class="cbot"></div></div><div class="blocks"><div class="block look">say <span class="input">Rescued!</span></div></div></div>
+</section>
+
+<section id="map">
+  <h2><span class="num">3</span>Bản đồ robot</h2>
+  <p>Bấm Bắt đầu. Robot sẽ đi từng ô một cho đến khi chạm đến đèn hiệu phát sáng.</p>
+  <div class="canvasBox"><canvas id="maze" width="980" height="380"></canvas><div class="controls"><button class="btn" id="mazeStart">⚑ Bắt đầu nhiệm vụ</button><button class="btn red" id="mazeReset">Đặt lại</button><span class="status" id="mazeStatus">Đang đợi lệnh</span></div></div>
+</section>
+
+<section id="demos">
+  <h2><span class="num">4</span>Ba quy tắc dừng khác nhau</h2>
+  <div class="cards">
+    <div class="card"><h3>Cảm biến khoảng cách</h3><p>Di chuyển cho đến khi bức tường ở gần.</p><div class="blockshell"><div class="cblock"><div class="ctop">repeat until <span class="diamond"><span>distance &lt; 10</span></span></div><div class="cbody"><div class="blocks"><div class="block motion">move <span class="input">5</span> steps</div></div></div><div class="cbot"></div></div></div></div>
+    <div class="card"><h3>Cảm biến pin</h3><p>Thu thập pha lê cho đến khi pin đầy.</p><div class="blockshell"><div class="cblock"><div class="ctop">repeat until <span class="diamond"><span>battery = 100</span></span></div><div class="cbody"><div class="blocks"><div class="block var">change battery by <span class="input">10</span></div></div></div><div class="cbot"></div></div></div></div>
+    <div class="card"><h3>Nút của người chơi</h3><p>Xoay cho đến khi người chơi nhấn phím space.</p><div class="blockshell"><div class="cblock"><div class="ctop">repeat until <span class="diamond"><span>space key pressed?</span></span></div><div class="cbody"><div class="blocks"><div class="block motion">turn <span class="input">15</span> degrees</div></div></div><div class="cbot"></div></div></div></div>
+  </div>
+</section>
+
+<section id="play">
+  <h2><span class="num">5</span>Phòng thí nghiệm tương tác</h2>
+  <h3>Thí nghiệm A: Sạc pin cho đến khi đầy</h3>
+  <div class="canvasBox"><canvas id="battery" width="980" height="250"></canvas><div class="controls"><button class="btn" id="batteryStart">⚑ Sạc pin</button><button class="btn red" id="batteryReset">Đặt lại</button><span class="status" id="batteryStatus">Pin 0%</span></div></div>
+  <h3>Thí nghiệm B: Khoan cho đến khi tìm thấy kho báu</h3>
+  <div class="canvasBox"><canvas id="dig" width="980" height="300"></canvas><div class="controls"><button class="btn" id="digStart">⚑ Khoan</button><button class="btn red" id="digReset">Đặt lại</button><span class="status" id="digStatus">Kho báu đang bị giấu</span></div></div>
+</section>
+
+<section id="build">
+  <h2><span class="num">6</span>Xây dựng dự án Scratch</h2>
+  <div class="grid">
+    <div class="mission"><strong>Dự án 1: Giải cứu trong không gian</strong><p>Làm tàu vũ trụ bay cho đến khi chạm vào phi hành gia.</p><pre>repeat until &lt;touching astronaut?&gt;
+  move 8 steps
+  point towards astronaut</pre></div>
+    <div class="mission"><strong>Dự án 2: Robot dọn phòng</strong><p>Robot hút bụi dọn dẹp cho đến khi số vết bẩn bằng 0.</p><pre>repeat until &lt;dirt = 0&gt;
+  go to dirt
+  delete dirt clone
+  change dirt by -1</pre></div>
+  </div>
+</section>
+
+<section id="quiz" class="quiz">
+  <h2><span class="num">7</span>Đố vui nhiệm vụ</h2>
+  <div class="q" data-a="b"><strong>1. Robot dừng khi chạm đèn hiệu. Vòng lặp nào tốt nhất?</strong><label><input name="q1" type="radio" value="a"> repeat 10</label><label><input name="q1" type="radio" value="b"> repeat until touching beacon</label><label><input name="q1" type="radio" value="c"> forever</label><div class="feedback"></div></div>
+  <div class="q" data-a="c"><strong>2. Ô hình thoi cần loại block nào?</strong><label><input name="q2" type="radio" value="a"> sound</label><label><input name="q2" type="radio" value="b"> costume</label><label><input name="q2" type="radio" value="c"> yes/no condition</label><div class="feedback"></div></div>
+  <div class="q" data-a="a"><strong>3. Vỗ tay đúng 6 lần?</strong><label><input name="q3" type="radio" value="a"> repeat 6</label><label><input name="q3" type="radio" value="b"> repeat until beacon</label><label><input name="q3" type="radio" value="c"> forever</label><div class="feedback"></div></div>
+  <button class="btn cyan" id="check">Kiểm tra câu trả lời</button> <span class="status" id="score">Điểm: 0 / 3</span>
+</section>
+
+<section id="video">
+  <h2><span class="num">8</span>Prompt tạo video AI</h2>
+  <p>Sao chép prompt vào công cụ tạo video AI. Sau đó thêm video đã tạo bằng <code>&lt;video src="robot-rescue.mp4" controls width="100%"&gt;&lt;/video&gt;</code>.</p>
+  <div class="mission"><h3>Ý tưởng giải cứu robot</h3><textarea readonly>Hoạt hình khoa học viễn tưởng 3D thân thiện với trẻ em. Một robot nhỏ dễ thương trên Sao Hỏa đi theo con đường màu xanh phát sáng đến đèn hiệu giải cứu. Sau mỗi bước, một màn hình hình thoi nổi lên hỏi "Touching beacon?" và hiện NO màu đỏ. Robot tiếp tục đi. Khi robot chạm đèn hiệu, hình thoi chuyển sang YES màu xanh lá, robot dừng lại, đèn hiệu phát sáng, các ngôi sao bung ra, robot vẫy tay. Làm rõ ý tưởng repeat-until: tiếp tục di chuyển cho đến khi chạm mục tiêu. Sáng, an toàn, vui nhộn, 8 giây, 16:9.</textarea><button class="copy">Sao chép prompt</button></div>
+  <div class="mission"><h3>Hoạt ảnh cổng quyết định</h3><textarea readonly>Motion graphics cho tre em. Hien thi block Scratch mau cam dang chu C "repeat until" nhu mot cong tuong lai. Mot token robot nho di qua block ben trong co nhan "move 10 steps". Cong hoi "At goal?". No nhap nhay NO mau do va dua robot quay lại vong lap vai lan. Cuoi cung cong nhap nhay YES mau xanh la va mo ra, robot di ra ngoai va an mung. Nhan ro rang, giao dien sci-fi vui nhon, 7 giay, 16:9.</textarea><button class="copy">Sao chép prompt</button></div>
+</section>
+<p class="foot">Phien ban GPT-5.5: chu de Giải cứu robot, khac voi bai hoc opus47 ve banh quy/meo.</p>
+</div>
+<script>
+const $=id=>document.getElementById(id);function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();ctx.stroke()}function label(ctx,x,y,text,good){ctx.font='bold 16px Trebuchet MS';let w=ctx.measureText(text).width+22;ctx.fillStyle=good?'rgba(183,255,74,.18)':'rgba(255,88,118,.18)';ctx.strokeStyle=good?'#b7ff4a':'#ff5876';ctx.lineWidth=2;rr(ctx,x,y,w,32,10);ctx.fillStyle='#f4fbff';ctx.fillText(text,x+11,y+22)}function robot(ctx,x,y){ctx.fillStyle='#39d5ff';ctx.strokeStyle='#dff8ff';ctx.lineWidth=2;rr(ctx,x-22,y-24,44,40,9);ctx.fillStyle='#07111f';ctx.beginPath();ctx.arc(x-9,y-9,4,0,Math.PI*2);ctx.arc(x+9,y-9,4,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#39d5ff';ctx.beginPath();ctx.moveTo(x,y-24);ctx.lineTo(x,y-42);ctx.stroke();ctx.fillStyle='#b7ff4a';ctx.beginPath();ctx.arc(x,y-45,5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#dff8ff';ctx.beginPath();ctx.moveTo(x-12,y+16);ctx.lineTo(x-18,y+30);ctx.moveTo(x+12,y+16);ctx.lineTo(x+18,y+30);ctx.stroke()}
+(function(){let c=$('maze'),ctx=c.getContext('2d'),path=[[70,310],[180,310],[290,310],[290,210],[410,210],[530,210],[530,120],[650,120],[770,120],[880,120]],i=0,run=false,timer,done=false;function draw(){ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='#08172b';ctx.fillRect(0,0,c.width,c.height);ctx.strokeStyle='rgba(57,213,255,.22)';for(let x=0;x<c.width;x+=70){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,c.height);ctx.stroke()}for(let y=0;y<c.height;y+=70){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(c.width,y);ctx.stroke()}ctx.strokeStyle='#39d5ff';ctx.lineWidth=10;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(path[0][0],path[0][1]);for(let p of path)ctx.lineTo(p[0],p[1]);ctx.stroke();ctx.fillStyle='#b7ff4a';ctx.beginPath();ctx.arc(880,120,24,0,Math.PI*2);ctx.fill();ctx.fillStyle='#07111f';ctx.font='bold 18px Trebuchet MS';ctx.fillText('ĐÈN HIỆU',826,84);let p=path[i];robot(ctx,p[0],p[1]);label(ctx,28,24,done?'touching beacon? YES':'touching beacon? no',done)}function step(){if(!run)return;if(i>=path.length-1){run=false;done=true;$('mazeStatus').textContent='Đã giải cứu. Vòng lặp kết thúc.';draw();return}i++;$('mazeStatus').textContent='Bước lặp '+i+': vẫn chưa tới nơi';draw();timer=setTimeout(step,550)}function reset(){clearTimeout(timer);i=0;run=false;done=false;$('mazeStatus').textContent='Đang đợi lệnh';draw()}$('mazeStart').onclick=()=>{if(run)return;if(done)reset();run=true;step()};$('mazeReset').onclick=reset;draw()})();
+(function(){let c=$('battery'),ctx=c.getContext('2d'),v=0,run=false,timer;function draw(){ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='#08172b';ctx.fillRect(0,0,c.width,c.height);ctx.strokeStyle='#39d5ff';ctx.lineWidth=5;ctx.strokeRect(210,86,520,82);ctx.fillStyle='#39d5ff';ctx.fillRect(735,108,26,38);ctx.fillStyle='#b7ff4a';ctx.fillRect(218,94,504*(v/100),66);ctx.fillStyle='#f4fbff';ctx.font='bold 42px Georgia';ctx.fillText(v+'%',430,145);label(ctx,30,24,v>=100?'battery = 100? YES':'battery = 100? no',v>=100)}function step(){if(!run)return;if(v>=100){run=false;$('batteryStatus').textContent='Pin đã đầy. Vòng lặp kết thúc.';draw();return}v+=10;$('batteryStatus').textContent='Đang sạc... '+v+'%';draw();timer=setTimeout(step,300)}function reset(){clearTimeout(timer);v=0;run=false;$('batteryStatus').textContent='Pin 0%';draw()}$('batteryStart').onclick=()=>{if(run)return;if(v>=100)reset();run=true;step()};$('batteryReset').onclick=reset;draw()})();
+(function(){let c=$('dig'),ctx=c.getContext('2d'),depth=0,treasure=6,run=false,timer;function draw(){ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='#08172b';ctx.fillRect(0,0,c.width,c.height);for(let y=60;y<c.height;y+=38){ctx.fillStyle=y%76?'#6b4a25':'#7c552d';ctx.fillRect(0,y,c.width,38)}ctx.fillStyle='#39d5ff';ctx.fillRect(470,20+depth*35,40,50);ctx.fillStyle='#b7ff4a';ctx.font='bold 30px Trebuchet MS';if(depth>=treasure)ctx.fillText('💎 KHO BÁU!',390,265);label(ctx,30,20,depth>=treasure?'Treasure found? YES':'Treasure found? no',depth>=treasure)}function step(){if(!run)return;if(depth>=treasure){run=false;$('digStatus').textContent='Đã tìm thấy kho báu. Vòng lặp kết thúc.';draw();return}depth++;$('digStatus').textContent='Đang khoan lớp '+depth;draw();timer=setTimeout(step,420)}function reset(){clearTimeout(timer);depth=0;run=false;$('digStatus').textContent='Kho báu đang bị giấu';draw()}$('digStart').onclick=()=>{if(run)return;if(depth>=treasure)reset();run=true;step()};$('digReset').onclick=reset;draw()})();
+$('check').onclick=()=>{let qs=[...document.querySelectorAll('.q')],s=0;qs.forEach(q=>{let p=q.querySelector('input:checked'),f=q.querySelector('.feedback');if(!p){f.textContent='Hãy chọn một câu.';f.className='feedback wrong';return}if(p.value===q.dataset.a){s++;f.textContent='Đúng rồi! Lựa chọn đúng cho nhiệm vụ.';f.className='feedback right'}else{f.textContent='Chưa đúng lần này.';f.className='feedback wrong'}});$('score').textContent='Diem: '+s+' / '+qs.length};document.querySelectorAll('.copy').forEach(b=>b.onclick=async()=>{let t=b.parentElement.querySelector('textarea').value;try{await navigator.clipboard.writeText(t)}catch(e){b.parentElement.querySelector('textarea').select();document.execCommand('copy')}b.textContent='Đã sao chép!';setTimeout(()=>b.textContent='Sao chép prompt',1200)});
+</script>
+</body>
+</html>
