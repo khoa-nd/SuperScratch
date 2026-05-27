@@ -1,0 +1,1428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The "Repeat Until" Block — A Friendly Guide for Kids</title>
+<style>
+  :root {
+    --scratch-orange: #ff8c1a;
+    --scratch-orange-dark: #db6e00;
+    --scratch-yellow: #ffbf00;
+    --scratch-blue: #4c97ff;
+    --scratch-green: #4cbf56;
+    --scratch-purple: #9966ff;
+    --scratch-pink: #ff6680;
+    --bg: #fff7e6;
+    --paper: #ffffff;
+    --ink: #2b2b3b;
+    --ink-soft: #5a5a72;
+    --shadow: 0 6px 0 rgba(0, 0, 0, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Comic Sans MS", "Chalkboard SE", "Comic Neue", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 10% 20%, rgba(76, 151, 255, 0.08) 0 30px, transparent 31px),
+      radial-gradient(circle at 90% 60%, rgba(153, 102, 255, 0.08) 0 40px, transparent 41px),
+      radial-gradient(circle at 50% 90%, rgba(76, 191, 86, 0.08) 0 25px, transparent 26px);
+  }
+
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 30px 22px 80px;
+  }
+
+  header.hero {
+    background: linear-gradient(135deg, #ffd166 0%, #ff8c1a 100%);
+    border-radius: 28px;
+    padding: 36px 28px;
+    color: white;
+    text-align: center;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  header.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.4) 0 8px, transparent 9px),
+      radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.3) 0 12px, transparent 13px),
+      radial-gradient(circle at 30% 80%, rgba(255, 255, 255, 0.25) 0 10px, transparent 11px),
+      radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.3) 0 6px, transparent 7px);
+    pointer-events: none;
+  }
+  header.hero h1 {
+    margin: 0;
+    font-size: clamp(28px, 5vw, 44px);
+    text-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
+    position: relative;
+  }
+  header.hero p {
+    margin: 12px auto 0;
+    font-size: clamp(16px, 2.4vw, 20px);
+    max-width: 620px;
+    position: relative;
+  }
+
+  section {
+    background: var(--paper);
+    margin-top: 28px;
+    border-radius: 22px;
+    padding: 26px 26px 28px;
+    box-shadow: var(--shadow);
+    border: 3px solid #ffe6c0;
+  }
+
+  h2 {
+    margin: 0 0 14px;
+    font-size: clamp(22px, 3.4vw, 30px);
+    color: var(--scratch-orange-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2 .num {
+    display: inline-flex;
+    width: 38px;
+    height: 38px;
+    background: var(--scratch-orange);
+    color: white;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 4px 0 var(--scratch-orange-dark);
+  }
+
+  h3 {
+    color: var(--scratch-blue);
+    margin-top: 22px;
+    font-size: 20px;
+  }
+
+  p, li { font-size: 17px; }
+  .big { font-size: 19px; }
+
+  .callout {
+    background: #fff3d6;
+    border-left: 6px solid var(--scratch-yellow);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 16px 0;
+  }
+  .callout.blue { background: #e6f1ff; border-left-color: var(--scratch-blue); }
+  .callout.green { background: #e6f8e8; border-left-color: var(--scratch-green); }
+  .callout.pink { background: #ffe6ec; border-left-color: var(--scratch-pink); }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 720px) {
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+
+  /* ========== Scratch-style blocks (pure CSS) ========== */
+  .blocks {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-weight: bold;
+    font-size: 14px;
+    user-select: none;
+  }
+  .block {
+    color: white;
+    padding: 8px 14px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.18) inset, 0 1px 0 rgba(255, 255, 255, 0.18) inset;
+    position: relative;
+    min-height: 28px;
+  }
+  .block + .block { margin-top: -2px; }
+  .block.event { background: #ffbf00; color: #563b00; }
+  .block.motion { background: var(--scratch-blue); }
+  .block.looks { background: var(--scratch-purple); }
+  .block.sound { background: #cf63cf; }
+  .block.control { background: var(--scratch-orange); }
+  .block.sensing { background: #5cb1d6; }
+  .block.operators { background: var(--scratch-green); }
+  .block.variables { background: #ff8c1a; }
+
+  .block .num-input {
+    background: white;
+    color: black;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 13px;
+  }
+  .block .bool-input {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 4px;
+    padding: 2px 14px;
+    transform: skewX(-25deg);
+    font-size: 12px;
+  }
+  .block .bool-input span { display: inline-block; transform: skewX(25deg); }
+
+  .c-block {
+    display: flex;
+    flex-direction: column;
+    background: var(--scratch-orange);
+    border-radius: 4px;
+    padding: 0;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.18) inset;
+  }
+  .c-block .top, .c-block .bottom {
+    color: white;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  .c-block .body {
+    background: transparent;
+    padding: 4px 4px 4px 18px;
+    border-left: 14px solid var(--scratch-orange);
+  }
+  .c-block .body .blocks { margin-left: -8px; }
+
+  .stack-shadow {
+    background: #fafafa;
+    border: 2px dashed #e1d5b8;
+    border-radius: 14px;
+    padding: 16px;
+    display: inline-block;
+  }
+
+  /* ========== Canvas wrappers ========== */
+  .canvas-card {
+    background: #f7faff;
+    border: 3px solid #d6e7ff;
+    border-radius: 16px;
+    padding: 14px;
+    margin-top: 12px;
+  }
+  .canvas-card canvas {
+    width: 100%;
+    height: auto;
+    background: white;
+    border-radius: 10px;
+    display: block;
+  }
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  button.btn {
+    background: var(--scratch-green);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 18px;
+    font-weight: bold;
+    font-family: inherit;
+    font-size: 15px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #2f8a3a;
+    transition: transform 0.05s;
+  }
+  button.btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #2f8a3a; }
+  button.btn.alt { background: var(--scratch-blue); box-shadow: 0 4px 0 #2c6cc1; }
+  button.btn.alt:active { box-shadow: 0 2px 0 #2c6cc1; }
+  button.btn.warn { background: var(--scratch-pink); box-shadow: 0 4px 0 #c4445a; }
+  button.btn.warn:active { box-shadow: 0 2px 0 #c4445a; }
+
+  .status {
+    display: inline-block;
+    margin-left: auto;
+    background: #fff;
+    border: 2px solid #d6e7ff;
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  /* ========== Comparison cards ========== */
+  .compare {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 820px) { .compare { grid-template-columns: 1fr; } }
+  .compare .card {
+    background: #fafafa;
+    border-radius: 16px;
+    padding: 14px;
+    border-top: 8px solid var(--scratch-orange);
+  }
+  .compare .card.green { border-top-color: var(--scratch-green); }
+  .compare .card.blue { border-top-color: var(--scratch-blue); }
+  .compare .card h4 { margin: 4px 0 10px; color: var(--ink); font-size: 18px; }
+  .compare .when {
+    background: white;
+    border: 1px dashed #e1d5b8;
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 14px;
+    margin-top: 10px;
+    color: var(--ink-soft);
+  }
+
+  /* ========== Quiz ========== */
+  .quiz { display: grid; gap: 14px; margin-top: 10px; }
+  .quiz .q {
+    background: #fafafa;
+    border-radius: 14px;
+    padding: 14px;
+    border: 2px solid #f0e3c2;
+  }
+  .quiz .q .options {
+    display: flex; flex-direction: column; gap: 6px; margin-top: 8px;
+  }
+  .quiz .q label {
+    display: flex; align-items: center; gap: 8px;
+    background: white; border: 2px solid #eee; border-radius: 10px;
+    padding: 8px 12px; cursor: pointer;
+  }
+  .quiz .q label:hover { border-color: var(--scratch-blue); }
+  .quiz .q .feedback { margin-top: 8px; min-height: 24px; font-weight: bold; }
+  .quiz .q .feedback.right { color: var(--scratch-green); }
+  .quiz .q .feedback.wrong { color: var(--scratch-pink); }
+
+  /* ========== Code ========== */
+  pre.code {
+    background: #1e1e2e;
+    color: #f5f5dc;
+    padding: 14px 16px;
+    border-radius: 12px;
+    overflow-x: auto;
+    font-family: "Fira Code", "Menlo", monospace;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  pre.code .kw { color: #ffbf00; }
+  pre.code .cm { color: #88c0d0; font-style: italic; }
+  pre.code .st { color: #a3e635; }
+  pre.code .nb { color: #ff8c1a; }
+
+  /* ========== Video prompt ========== */
+  .video-prompt {
+    background: #f0e6ff;
+    border: 3px dashed var(--scratch-purple);
+    border-radius: 14px;
+    padding: 14px 16px;
+    position: relative;
+  }
+  .video-prompt textarea {
+    width: 100%;
+    min-height: 110px;
+    border-radius: 10px;
+    border: 2px solid #d4c2ff;
+    padding: 10px;
+    font-family: "Fira Code", monospace;
+    font-size: 13px;
+    resize: vertical;
+    background: white;
+  }
+  .copy-btn {
+    background: var(--scratch-purple); color: white; border: none;
+    border-radius: 999px; padding: 8px 14px; cursor: pointer;
+    font-weight: bold; font-family: inherit; font-size: 14px;
+    box-shadow: 0 3px 0 #6b3fcc; margin-top: 8px;
+  }
+  .copy-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #6b3fcc; }
+
+  /* ========== Decoration ========== */
+  .toc {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;
+    justify-content: center;
+  }
+  .toc a {
+    background: white; color: var(--scratch-orange-dark);
+    text-decoration: none; padding: 6px 14px; border-radius: 999px;
+    border: 2px solid var(--scratch-orange);
+    font-size: 14px; font-weight: bold;
+    box-shadow: 0 3px 0 var(--scratch-orange-dark);
+  }
+  .toc a:hover { background: var(--scratch-orange); color: white; }
+
+  .emoji-row { font-size: 32px; letter-spacing: 6px; }
+
+  footer {
+    text-align: center; color: var(--ink-soft);
+    margin-top: 26px; font-size: 14px;
+  }
+
+  /* ========== Cat character (mini sprite) ========== */
+  .cat-row { display: flex; align-items: center; gap: 14px; margin: 10px 0; }
+  .cat {
+    width: 56px; height: 56px;
+    background: var(--scratch-orange); border-radius: 50% 50% 35% 35%;
+    position: relative; flex-shrink: 0;
+    box-shadow: var(--shadow);
+  }
+  .cat::before, .cat::after {
+    content: ""; position: absolute; top: -8px; width: 0; height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 16px solid var(--scratch-orange);
+  }
+  .cat::before { left: 6px; transform: rotate(-15deg); }
+  .cat::after { right: 6px; transform: rotate(15deg); }
+  .cat .face {
+    position: absolute; inset: 14px 8px 8px 8px;
+    background: radial-gradient(circle at 30% 40%, white 4px, transparent 5px),
+                radial-gradient(circle at 70% 40%, white 4px, transparent 5px);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="emoji-row" aria-hidden="true">&#127859; &#129409; &#127881;</div>
+    <h1>The "Repeat Until" Block</h1>
+    <p>A super fun guide for curious 7-year-old coders.<br/>
+       Let's learn how to tell the computer: <em>"Keep doing this... until something happens!"</em></p>
+    <nav class="toc">
+      <a href="#story">1. The Story</a>
+      <a href="#block">2. The Block</a>
+      <a href="#demo1">3. Watch It Work</a>
+      <a href="#compare">4. Compare</a>
+      <a href="#examples">5. Real Games</a>
+      <a href="#try">6. Try It</a>
+      <a href="#quiz">7. Quiz</a>
+      <a href="#video">8. Video Ideas</a>
+    </nav>
+  </header>
+
+  <!-- ===================== Story ===================== -->
+  <section id="story">
+    <h2><span class="num">1</span> The Cookie Story &#127850;</h2>
+    <p class="big">Imagine you have a plate of cookies. Your job is simple:</p>
+    <div class="callout pink">
+      <strong>Eat one cookie...<br/>then eat another cookie...<br/>then eat another cookie...</strong><br/>
+      <span class="big">UNTIL the plate is empty!</span>
+    </div>
+
+    <p>You don't know <em>exactly</em> how many cookies are on the plate.
+       Maybe 3. Maybe 8. Maybe 100! &#128561;</p>
+    <p>You just keep eating <strong>until</strong> there are zero cookies left. That's it!
+       That's the same idea as the <strong>repeat until</strong> block in Scratch.</p>
+
+    <div class="grid-2">
+      <div class="callout blue">
+        <strong>The rule of "repeat until":</strong>
+        <ol>
+          <li>Do something.</li>
+          <li>Check: did the special thing happen yet?</li>
+          <li>If <strong>NO</strong> &#8594; do it again.</li>
+          <li>If <strong>YES</strong> &#8594; stop! Move on. &#127881;</li>
+        </ol>
+      </div>
+      <div class="callout green">
+        <strong>Other real-life examples:</strong>
+        <ul>
+          <li>Climb stairs <strong>until</strong> you reach the top.</li>
+          <li>Pour water into a cup <strong>until</strong> it's full.</li>
+          <li>Brush teeth <strong>until</strong> they are clean.</li>
+          <li>Run around the playground <strong>until</strong> Mom calls you.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== The Block ===================== -->
+  <section id="block">
+    <h2><span class="num">2</span> Meet the Block &#129513;</h2>
+    <p>In Scratch, the <strong>repeat until</strong> block lives in the orange
+      <strong>Control</strong> drawer. It looks like a hugging "C" shape that wraps around
+      other blocks like a bear hug! &#129383;</p>
+
+    <div class="cat-row">
+      <div class="cat" aria-hidden="true"><div class="face"></div></div>
+      <div>This is Scratch Cat. He helps us see the blocks in action.</div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <h3>This is what it looks like:</h3>
+        <div class="stack-shadow">
+          <div class="c-block">
+            <div class="top">repeat&nbsp;until&nbsp;<span class="bool-input"><span>&nbsp;</span></span></div>
+            <div class="body"><div class="blocks">
+              <div class="block motion">move 10 steps</div>
+            </div></div>
+            <div class="bottom" style="background: var(--scratch-orange-dark); border-radius: 0 0 4px 4px;">&nbsp;</div>
+          </div>
+        </div>
+        <p style="font-size: 14px; color: var(--ink-soft);">
+          The little diamond <strong>&lt;&nbsp;&gt;</strong> shape is where you put a
+          <em>question</em> the computer can answer "yes" or "no".</p>
+      </div>
+      <div>
+        <h3>A real example:</h3>
+        <div class="stack-shadow">
+          <div class="blocks">
+            <div class="block event">when <span style="font-size:18px;">&#9873;</span> clicked</div>
+          </div>
+          <div class="c-block">
+            <div class="top">repeat&nbsp;until&nbsp;<span class="bool-input"><span>touching edge?</span></span></div>
+            <div class="body"><div class="blocks">
+              <div class="block motion">move <span class="num-input">10</span> steps</div>
+            </div></div>
+            <div class="bottom" style="background: var(--scratch-orange-dark); border-radius: 0 0 4px 4px;">&nbsp;</div>
+          </div>
+          <div class="blocks">
+            <div class="block looks">say <span class="num-input">I made it!</span></div>
+          </div>
+        </div>
+        <p style="font-size: 14px; color: var(--ink-soft);">
+          Translation: "Walk forward 10 steps over and over... <strong>until</strong> you bump into the wall.
+          Then say I made it!"</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>The big idea:</strong> "repeat until" needs a <strong>question</strong> (the diamond) and
+      some <strong>blocks inside</strong> (the bear hug). The computer keeps doing the inside blocks
+      again and again until the question's answer becomes <strong>YES</strong>.
+    </div>
+  </section>
+
+  <!-- ===================== Demo 1: Walking cat ===================== -->
+  <section id="demo1">
+    <h2><span class="num">3</span> Watch It Work! &#128064;</h2>
+    <p>Press the green flag below. The cat will <strong>move 10 steps</strong> over and over,
+       <em>repeat until</em> he <strong>touches the right edge</strong>.</p>
+
+    <div class="canvas-card">
+      <canvas id="demoCat" width="900" height="220" aria-label="Cat walking until edge"></canvas>
+      <div class="controls">
+        <button class="btn" id="demoCatStart">&#9873; Start</button>
+        <button class="btn warn" id="demoCatReset">&#11203; Reset</button>
+        <span class="status" id="demoCatStatus">Ready</span>
+      </div>
+    </div>
+
+    <div class="callout green">
+      <strong>What you saw:</strong> Each time around, the computer asks
+      <em>"Are you touching the edge yet?"</em> If the answer is "no", the cat moves another 10 steps.
+      When the answer becomes "yes", the loop stops and the cat shouts "I made it!"
+    </div>
+  </section>
+
+  <!-- ===================== Compare ===================== -->
+  <section id="compare">
+    <h2><span class="num">4</span> Three Loop Cousins &#128106;</h2>
+    <p>Scratch has three loop blocks. They are like cousins, but each one is a little different.</p>
+
+    <div class="compare">
+      <div class="card">
+        <h4>&#128257; <span style="color: var(--scratch-orange-dark);">repeat 10</span></h4>
+        <div class="stack-shadow" style="display:block">
+          <div class="c-block">
+            <div class="top">repeat <span class="num-input">10</span></div>
+            <div class="body"><div class="blocks"><div class="block motion">move 10 steps</div></div></div>
+            <div class="bottom" style="background: var(--scratch-orange-dark);">&nbsp;</div>
+          </div>
+        </div>
+        <p>"Do this exactly 10 times, then stop."</p>
+        <div class="when"><strong>Use when:</strong> you know the exact number of times.</div>
+      </div>
+
+      <div class="card green">
+        <h4>&#8734; <span style="color: var(--scratch-green);">forever</span></h4>
+        <div class="stack-shadow" style="display:block">
+          <div class="c-block" style="background: var(--scratch-orange);">
+            <div class="top">forever</div>
+            <div class="body"><div class="blocks"><div class="block motion">move 10 steps</div></div></div>
+          </div>
+        </div>
+        <p>"Do this forever and ever, never stop."</p>
+        <div class="when"><strong>Use when:</strong> you never want it to stop, like a heart that always beats.</div>
+      </div>
+
+      <div class="card blue">
+        <h4>&#9203; <span style="color: var(--scratch-blue);">repeat until</span></h4>
+        <div class="stack-shadow" style="display:block">
+          <div class="c-block">
+            <div class="top">repeat&nbsp;until&nbsp;<span class="bool-input"><span>at goal?</span></span></div>
+            <div class="body"><div class="blocks"><div class="block motion">move 10 steps</div></div></div>
+            <div class="bottom" style="background: var(--scratch-orange-dark);">&nbsp;</div>
+          </div>
+        </div>
+        <p>"Do this <strong>until</strong> something special happens, then stop."</p>
+        <div class="when"><strong>Use when:</strong> you don't know the number of times, but you know <em>when to stop</em>.</div>
+      </div>
+    </div>
+
+    <div class="callout pink">
+      <strong>The most important difference:</strong><br/>
+      &#128257; <strong>repeat 10</strong> &#8594; you tell it the <em>number</em>.<br/>
+      &#9203; <strong>repeat until</strong> &#8594; you tell it the <em>condition</em> (a yes-or-no question).
+    </div>
+  </section>
+
+  <!-- ===================== Examples ===================== -->
+  <section id="examples">
+    <h2><span class="num">5</span> Real Games Use This Block! &#127918;</h2>
+    <p>Here are 4 things you might want to make in Scratch. Each one needs <strong>repeat until</strong>:</p>
+
+    <div class="grid-2">
+      <div class="callout blue">
+        <strong>&#127942; 1. The Race</strong>
+        <p>Make the cat run forward... <strong>repeat until</strong> he touches the finish line.</p>
+        <div class="stack-shadow" style="display:block">
+          <div class="c-block">
+            <div class="top">repeat&nbsp;until&nbsp;<span class="bool-input"><span>touching finish line?</span></span></div>
+            <div class="body"><div class="blocks">
+              <div class="block motion">change x by <span class="num-input">5</span></div>
+            </div></div>
+            <div class="bottom" style="background: var(--scratch-orange-dark);">&nbsp;</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout pink">
+        <strong>&#127922; 2. Falling Apple</strong>
+        <p>Make an apple fall down... <strong>repeat until</strong> it touches the ground.</p>
+        <div class="stack-shadow" style="display:block">
+          <div class="c-block">
+            <div class="top">repeat&nbsp;until&nbsp;<span class="bool-input"><span>touching ground?</span></span></div>
+            <div class="body"><div class="blocks">
+              <div class="block motion">change y by <span class="num-input">-5</span></div>
+            </div></div>
+            <div class="bottom" style="background: var(--scratch-orange-dark);">&nbsp;</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout green">
+        <strong>&#128293; 3. Score Hunter</strong>
+        <p>Catch stars... <strong>repeat until</strong> the score is 10.</p>
+        <div class="stack-shadow" style="display:block">
+          <div class="c-block">
+            <div class="top">repeat&nbsp;until&nbsp;<span class="bool-input"><span>score = 10</span></span></div>
+            <div class="body"><div class="blocks">
+              <div class="block motion">go to a random place</div>
+              <div class="block sensing">wait 1 sec</div>
+            </div></div>
+            <div class="bottom" style="background: var(--scratch-orange-dark);">&nbsp;</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>&#127919; 4. Guessing Game</strong>
+        <p>Ask for a number... <strong>repeat until</strong> the player guesses the secret number.</p>
+        <div class="stack-shadow" style="display:block">
+          <div class="c-block">
+            <div class="top">repeat&nbsp;until&nbsp;<span class="bool-input"><span>answer = 7</span></span></div>
+            <div class="body"><div class="blocks">
+              <div class="block sensing">ask "Guess?" and wait</div>
+              <div class="block looks">say "Try again!"</div>
+            </div></div>
+            <div class="bottom" style="background: var(--scratch-orange-dark);">&nbsp;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== Try It Yourself (interactive) ===================== -->
+  <section id="try">
+    <h2><span class="num">6</span> Try It Yourself! &#128293;</h2>
+    <p>Here are <strong>three little playgrounds</strong>. Press the green flag and watch the
+       <em>repeat until</em> loop in action!</p>
+
+    <h3>&#127922; Playground A — The Falling Apple</h3>
+    <p>The apple keeps moving down 4 pixels... <strong>repeat until</strong> it touches the grass.</p>
+    <div class="canvas-card">
+      <canvas id="appleCanvas" width="900" height="320"></canvas>
+      <div class="controls">
+        <button class="btn" id="appleStart">&#9873; Start</button>
+        <button class="btn warn" id="appleReset">&#11203; Reset</button>
+        <span class="status" id="appleStatus">Apple is at the top</span>
+      </div>
+    </div>
+
+    <h3>&#127942; Playground B — Race to the Finish</h3>
+    <p>Three runners! Each one moves forward a random tiny step... <strong>repeat until</strong> someone
+       touches the red flag. Who will win? &#127937;</p>
+    <div class="canvas-card">
+      <canvas id="raceCanvas" width="900" height="280"></canvas>
+      <div class="controls">
+        <button class="btn" id="raceStart">&#9873; Start race</button>
+        <button class="btn warn" id="raceReset">&#11203; Reset</button>
+        <span class="status" id="raceStatus">Ready, set...</span>
+      </div>
+    </div>
+
+    <h3>&#127919; Playground C — Trap the Bug!</h3>
+    <p>The bug bounces. You click "Catch!" to try to grab it. The loop says: <em>keep flying...
+       <strong>repeat until</strong> caught!</em></p>
+    <div class="canvas-card">
+      <canvas id="bugCanvas" width="900" height="280"></canvas>
+      <div class="controls">
+        <button class="btn" id="bugStart">&#9873; Release bug</button>
+        <button class="btn alt" id="bugCatch">&#129665; Catch!</button>
+        <button class="btn warn" id="bugReset">&#11203; Reset</button>
+        <span class="status" id="bugStatus">Bug is sleeping</span>
+      </div>
+    </div>
+
+    <div class="callout pink">
+      <strong>Notice something cool?</strong> In all three playgrounds, the loop runs a
+      <em>different number of times</em>. The computer doesn't care! It just keeps going
+      <strong>until</strong> the special thing happens. That's the whole superpower of
+      "repeat until". &#11088;
+    </div>
+  </section>
+
+  <!-- ===================== Code peek ===================== -->
+  <section id="code-peek">
+    <h2><span class="num">7</span> A Tiny Peek at "Real" Code &#128187;</h2>
+    <p>When you grow up and learn languages like Python or JavaScript, "repeat until"
+       has a different name: it's called a <strong>while loop</strong>. But the idea is the same!</p>
+
+    <h3>The Scratch way:</h3>
+    <div class="stack-shadow" style="display:block">
+      <div class="c-block">
+        <div class="top">repeat&nbsp;until&nbsp;<span class="bool-input"><span>x &gt; 200</span></span></div>
+        <div class="body"><div class="blocks">
+          <div class="block variables">change x by <span class="num-input">10</span></div>
+        </div></div>
+        <div class="bottom" style="background: var(--scratch-orange-dark);">&nbsp;</div>
+      </div>
+    </div>
+
+    <h3>The Python way (just for fun!):</h3>
+<pre class="code"><span class="cm"># Keep adding 10 to x, until x is bigger than 200</span>
+x = <span class="nb">0</span>
+<span class="kw">while</span> x &lt;= <span class="nb">200</span>:
+    x = x + <span class="nb">10</span>
+<span class="kw">print</span>(<span class="st">"I made it!"</span>)</pre>
+
+    <div class="callout blue">
+      <strong>See?</strong> Same idea, different costume! The computer keeps doing something
+      <em>until</em> a question becomes true.
+    </div>
+  </section>
+
+  <!-- ===================== Quiz ===================== -->
+  <section id="quiz">
+    <h2><span class="num">8</span> Brain Power Quiz &#129504;</h2>
+    <p>Tap an answer for each question. The colored words below will tell you if you got it!</p>
+
+    <div class="quiz">
+      <div class="q" data-correct="b">
+        <strong>Q1.</strong> Mom says "Eat your broccoli until your plate is empty."
+        Which loop is that?
+        <div class="options">
+          <label><input type="radio" name="q1" value="a"> repeat 5 times</label>
+          <label><input type="radio" name="q1" value="b"> repeat until plate is empty</label>
+          <label><input type="radio" name="q1" value="c"> forever</label>
+        </div>
+        <div class="feedback"></div>
+      </div>
+
+      <div class="q" data-correct="c">
+        <strong>Q2.</strong> Your heart should beat... ?
+        <div class="options">
+          <label><input type="radio" name="q2" value="a"> repeat 10 times</label>
+          <label><input type="radio" name="q2" value="b"> repeat until tired</label>
+          <label><input type="radio" name="q2" value="c"> forever</label>
+        </div>
+        <div class="feedback"></div>
+      </div>
+
+      <div class="q" data-correct="a">
+        <strong>Q3.</strong> You want to clap your hands exactly 3 times. Which loop?
+        <div class="options">
+          <label><input type="radio" name="q3" value="a"> repeat 3</label>
+          <label><input type="radio" name="q3" value="b"> repeat until tired</label>
+          <label><input type="radio" name="q3" value="c"> forever</label>
+        </div>
+        <div class="feedback"></div>
+      </div>
+
+      <div class="q" data-correct="b">
+        <strong>Q4.</strong> What goes inside the diamond shape of a "repeat until" block?
+        <div class="options">
+          <label><input type="radio" name="q4" value="a"> A number</label>
+          <label><input type="radio" name="q4" value="b"> A yes-or-no question (a condition)</label>
+          <label><input type="radio" name="q4" value="c"> A sound</label>
+        </div>
+        <div class="feedback"></div>
+      </div>
+
+      <div class="q" data-correct="b">
+        <strong>Q5.</strong> A car drives forward. We want it to stop when it touches a wall. Best block?
+        <div class="options">
+          <label><input type="radio" name="q5" value="a"> forever &#8594; move forward</label>
+          <label><input type="radio" name="q5" value="b"> repeat until touching wall &#8594; move forward</label>
+          <label><input type="radio" name="q5" value="c"> repeat 2 &#8594; move forward</label>
+        </div>
+        <div class="feedback"></div>
+      </div>
+    </div>
+    <div style="margin-top: 12px;">
+      <button class="btn" id="quizCheck">Check my answers</button>
+      <span class="status" id="quizScore">Score: 0 / 5</span>
+    </div>
+  </section>
+
+  <!-- ===================== Video Prompts ===================== -->
+  <section id="video">
+    <h2><span class="num">9</span> AI Video Prompts &#127916;</h2>
+    <p>Want to add real videos? Copy any prompt below and paste it into an AI video tool
+      (like Sora, Runway, Veo, Pika, or Kling). Then drag the video file into the page,
+      or replace the placeholder below with an &lt;video&gt; tag.</p>
+
+    <h3>&#127850; Prompt 1 — The Cookie Story</h3>
+    <div class="video-prompt">
+      <textarea readonly>Cute 3D cartoon style, colorful kid-friendly. A smiling kid sits at a small wooden table with a plate piled with chocolate-chip cookies. The camera is at kid-eye-level. The kid eats one cookie, then another, then another, with happy chewing sounds. After each cookie, a big cartoon thought bubble pops up over the plate showing the question "Plate empty?" with a NO sign in red. When the last cookie is eaten, the bubble shows "Plate empty?" with a green YES check. The kid throws hands up and shouts "I'm done!" Confetti falls. Bright pastel colors, warm lighting, no text on screen. 8 seconds, 16:9.</textarea>
+      <button class="copy-btn">Copy prompt</button>
+    </div>
+
+    <h3>&#129409; Prompt 2 — Scratch Cat Walking to the Wall</h3>
+    <div class="video-prompt">
+      <textarea readonly>Flat 2D cartoon, Scratch the orange cat character walking step by step from left to right across a bright blue sky background with green grass. Each step is a clear hop. After every 2 hops, a yellow cartoon thought bubble pops up showing a diamond shape with "Touching wall?" and a red X. The cat keeps walking. When he finally bumps softly into a brick wall on the right side, the bubble shows the diamond with a green check. The cat smiles and says "I made it!" with a comic book speech bubble. Cheerful, friendly, kid TV style. Loop-friendly, 6 seconds, 16:9.</textarea>
+      <button class="copy-btn">Copy prompt</button>
+    </div>
+
+    <h3>&#128031; Prompt 3 — Apple Falling Until Ground</h3>
+    <div class="video-prompt">
+      <textarea readonly>Flat cartoon style for kids. A bright red apple with a green leaf is at the top of the screen, hanging from a tree branch. The apple lets go and falls down step by step (visible discrete jumps, like a video game). At each jump, a small comic thought bubble next to the apple shows "Touched ground?" with a red NO. After about 6 jumps, the apple lands on green grass with a soft bounce; the bubble now shows "Touched ground?" with a big green YES check, and tiny stars sparkle. Sunny sky, white clouds, very kid-friendly. 5 seconds, 16:9, no text overlay other than what's described in bubbles.</textarea>
+      <button class="copy-btn">Copy prompt</button>
+    </div>
+
+    <h3>&#127942; Prompt 4 — Race to the Finish</h3>
+    <div class="video-prompt">
+      <textarea readonly>Cute 3D cartoon, three friendly animal runners (a fox, a bunny, a turtle) on a race track, side by side, viewed from a slight side-angle. They each run forward in small bursts. Above the scene is a big cartoon banner that reads "REPEAT UNTIL someone touches the flag". A bright red checkered flag sits at the right edge. The animals each take random small steps. After many funny back-and-forth lead changes, the bunny finally touches the flag first. Confetti, cheering crowd noise, the bunny holds a trophy. Bright Pixar-style lighting, kid-friendly, 8 seconds, 16:9.</textarea>
+      <button class="copy-btn">Copy prompt</button>
+    </div>
+
+    <h3>&#127919; Prompt 5 — The Diamond and the Loop (concept clip)</h3>
+    <div class="video-prompt">
+      <textarea readonly>Educational 2D motion graphics for kids age 6-8. Center of screen: a giant orange Scratch-style "C-shaped" block labeled "REPEAT UNTIL" wraps around a smaller blue block labeled "MOVE 10 STEPS". A diamond-shaped slot at the top of the C-block holds a yellow speech-balloon that asks "Touched edge?". A friendly cartoon arrow loops around and around through the inside block, like a racetrack. Each loop, the diamond flashes red "NO" while the arrow keeps going. After several laps the diamond turns green and shows "YES" with a checkmark; the arrow exits out the bottom of the C-block in a happy puff of stars. Soft pastel background, cheerful music vibe, no narration, all visual. 7 seconds, 16:9.</textarea>
+      <button class="copy-btn">Copy prompt</button>
+    </div>
+
+    <div class="callout green">
+      <strong>How to add the video to this page:</strong>
+      <ol>
+        <li>Generate the video with one of the prompts above.</li>
+        <li>Save the file (e.g. <code>cookie.mp4</code>) next to this HTML file.</li>
+        <li>Paste this little snippet inside the section, right under the prompt:
+<pre class="code">&lt;video src="cookie.mp4" controls width="100%"&gt;&lt;/video&gt;</pre>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===================== Wrap up ===================== -->
+  <section id="wrap-up">
+    <h2><span class="num">&#11088;</span> You Got This!</h2>
+    <p class="big">Now you know the secret of <strong>repeat until</strong>:</p>
+    <div class="callout pink">
+      <strong>Keep doing the inside blocks &#8594; until the question becomes YES &#8594; then stop.</strong>
+    </div>
+    <p>Try making your own Scratch project this week! Some ideas:</p>
+    <ul>
+      <li>A spaceship that flies forward <em>until</em> it touches a planet.</li>
+      <li>A frog that jumps <em>until</em> it reaches a lily pad.</li>
+      <li>A treasure hunter that walks <em>until</em> the score is 5.</li>
+    </ul>
+    <p class="big">Have fun, little coder! &#127881; &#129409; &#128187;</p>
+  </section>
+
+  <footer>
+    Made with care for curious kids learning Scratch.
+    Open this file in any web browser. Press the green flags to see "repeat until" in action!
+  </footer>
+
+</div>
+
+<script>
+/* ============================================================
+   Helpers
+   ============================================================ */
+function $(id) { return document.getElementById(id); }
+function clear(ctx, c) {
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, c.width, c.height);
+}
+
+/* ============================================================
+   Reusable: draw a friendly Scratch-cat-ish character
+   ============================================================ */
+function drawCat(ctx, x, y, frame) {
+  // body
+  ctx.fillStyle = "#ff8c1a";
+  ctx.beginPath();
+  ctx.ellipse(x, y, 36, 28, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ears
+  ctx.beginPath();
+  ctx.moveTo(x - 22, y - 22);
+  ctx.lineTo(x - 10, y - 38);
+  ctx.lineTo(x - 4, y - 22);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(x + 22, y - 22);
+  ctx.lineTo(x + 10, y - 38);
+  ctx.lineTo(x + 4, y - 22);
+  ctx.closePath();
+  ctx.fill();
+
+  // eyes
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath(); ctx.arc(x - 10, y - 6, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x + 10, y - 6, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#1e1e2e";
+  ctx.beginPath(); ctx.arc(x - 9, y - 5, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x + 11, y - 5, 2.5, 0, Math.PI * 2); ctx.fill();
+
+  // smile
+  ctx.strokeStyle = "#1e1e2e";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(x, y + 4, 6, 0, Math.PI);
+  ctx.stroke();
+
+  // legs (animate based on frame)
+  const swing = Math.sin(frame * 0.3) * 4;
+  ctx.fillStyle = "#ff8c1a";
+  ctx.fillRect(x - 22, y + 24, 8, 10 + swing);
+  ctx.fillRect(x + 14, y + 24, 8, 10 - swing);
+}
+
+function drawSpeechBubble(ctx, x, y, text, color) {
+  color = color || "#fff3d6";
+  ctx.font = "bold 14px Comic Sans MS, sans-serif";
+  const padding = 8;
+  const w = ctx.measureText(text).width + padding * 2;
+  const h = 26;
+  ctx.fillStyle = color;
+  ctx.strokeStyle = "#caa75a";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  // rounded rect
+  const r = 10;
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + 18, y + h);
+  ctx.lineTo(x + 12, y + h + 8);
+  ctx.lineTo(x + 14, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "#2b2b3b";
+  ctx.fillText(text, x + padding, y + h - 9);
+}
+
+/* ============================================================
+   Demo 1: Cat walking until edge
+   ============================================================ */
+(function () {
+  const c = $("demoCat");
+  if (!c) return;
+  const ctx = c.getContext("2d");
+  const status = $("demoCatStatus");
+
+  let x = 60, frame = 0, running = false, raf = null, done = false;
+  const stepSize = 10;
+  const goalX = c.width - 70;
+
+  function draw() {
+    clear(ctx, c);
+    // ground
+    ctx.fillStyle = "#cfe9c8";
+    ctx.fillRect(0, c.height - 40, c.width, 40);
+    // wall (right edge)
+    ctx.fillStyle = "#9ec6f0";
+    ctx.fillRect(c.width - 30, 0, 30, c.height);
+    // bricks
+    ctx.strokeStyle = "#6c9bd0";
+    for (let y = 0; y < c.height; y += 20) {
+      ctx.beginPath();
+      ctx.moveTo(c.width - 30, y);
+      ctx.lineTo(c.width, y);
+      ctx.stroke();
+    }
+    // diamond label
+    drawSpeechBubble(ctx, 20, 20,
+      done ? "Touching edge?  YES!" : "Touching edge?  no",
+      done ? "#d4f5d4" : "#ffe6e0");
+
+    drawCat(ctx, x, c.height - 60, frame);
+    if (done) {
+      drawSpeechBubble(ctx, x - 30, c.height - 130, "I made it!", "#fff3d6");
+    }
+  }
+
+  function step() {
+    if (!running) return;
+    // The "repeat until" condition: stop when touching edge
+    if (x + 40 >= c.width - 30) {
+      running = false;
+      done = true;
+      status.textContent = "Done! Loop ended (touched edge).";
+      draw();
+      return;
+    }
+    x += stepSize;
+    frame++;
+    status.textContent = "Looping... x = " + x;
+    draw();
+    raf = setTimeout(step, 90);
+  }
+
+  $("demoCatStart").onclick = function () {
+    if (running) return;
+    if (done) reset();
+    running = true;
+    status.textContent = "Running...";
+    step();
+  };
+
+  function reset() {
+    if (raf) clearTimeout(raf);
+    running = false; done = false; x = 60; frame = 0;
+    status.textContent = "Ready";
+    draw();
+  }
+  $("demoCatReset").onclick = reset;
+  draw();
+})();
+
+/* ============================================================
+   Playground A: Falling apple
+   ============================================================ */
+(function () {
+  const c = $("appleCanvas");
+  if (!c) return;
+  const ctx = c.getContext("2d");
+  const status = $("appleStatus");
+
+  let y = 50, running = false, raf = null, done = false;
+  const x = c.width / 2;
+  const groundY = c.height - 50;
+  const stepSize = 4;
+
+  function draw() {
+    clear(ctx, c);
+    // sky
+    const grad = ctx.createLinearGradient(0, 0, 0, c.height);
+    grad.addColorStop(0, "#bce3ff");
+    grad.addColorStop(1, "#e7f5ff");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, c.width, c.height);
+    // grass
+    ctx.fillStyle = "#7ed957";
+    ctx.fillRect(0, groundY, c.width, c.height - groundY);
+    // tree
+    ctx.fillStyle = "#7d4b1e";
+    ctx.fillRect(x - 8, 0, 16, 30);
+    ctx.fillStyle = "#4cbf56";
+    ctx.beginPath();
+    ctx.arc(x, 24, 36, 0, Math.PI * 2);
+    ctx.fill();
+
+    // apple
+    ctx.fillStyle = "#e63946";
+    ctx.beginPath();
+    ctx.arc(x, y, 18, 0, Math.PI * 2);
+    ctx.fill();
+    // leaf
+    ctx.fillStyle = "#3a8a3a";
+    ctx.beginPath();
+    ctx.ellipse(x + 6, y - 16, 6, 3, -0.6, 0, Math.PI * 2);
+    ctx.fill();
+    // stem
+    ctx.strokeStyle = "#5a3a1a";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 16); ctx.lineTo(x - 2, y - 22);
+    ctx.stroke();
+
+    // bubble
+    drawSpeechBubble(ctx, x + 30, y - 30,
+      done ? "Touched ground?  YES!" : "Touched ground?  no",
+      done ? "#d4f5d4" : "#ffe6e0");
+
+    if (done) {
+      ctx.fillStyle = "#ffbf00";
+      ctx.font = "bold 22px Comic Sans MS";
+      ctx.fillText("Plop! Loop done.", c.width / 2 - 90, groundY - 70);
+    }
+  }
+
+  function step() {
+    if (!running) return;
+    if (y + 18 >= groundY) {
+      running = false;
+      done = true;
+      status.textContent = "Apple landed! Loop ended.";
+      draw();
+      return;
+    }
+    y += stepSize;
+    status.textContent = "Falling... y = " + Math.round(y);
+    draw();
+    raf = setTimeout(step, 50);
+  }
+
+  $("appleStart").onclick = function () {
+    if (running) return;
+    if (done) reset();
+    running = true;
+    status.textContent = "Falling...";
+    step();
+  };
+
+  function reset() {
+    if (raf) clearTimeout(raf);
+    running = false; done = false; y = 50;
+    status.textContent = "Apple is at the top";
+    draw();
+  }
+  $("appleReset").onclick = reset;
+  draw();
+})();
+
+/* ============================================================
+   Playground B: Race
+   ============================================================ */
+(function () {
+  const c = $("raceCanvas");
+  if (!c) return;
+  const ctx = c.getContext("2d");
+  const status = $("raceStatus");
+
+  const flagX = c.width - 60;
+  const runners = [
+    { name: "Fox",    color: "#e76f51", y: 70,  x: 40 },
+    { name: "Bunny",  color: "#a8dadc", y: 140, x: 40 },
+    { name: "Turtle", color: "#588157", y: 210, x: 40 }
+  ];
+  let running = false, winner = null, raf = null;
+
+  function drawRunner(r) {
+    ctx.fillStyle = r.color;
+    ctx.beginPath();
+    ctx.ellipse(r.x, r.y, 22, 16, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // head
+    ctx.beginPath();
+    ctx.arc(r.x + 18, r.y - 6, 10, 0, Math.PI * 2);
+    ctx.fill();
+    // eye
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(r.x + 22, r.y - 8, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#1e1e2e";
+    ctx.beginPath();
+    ctx.arc(r.x + 23, r.y - 8, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    // legs
+    ctx.fillStyle = r.color;
+    ctx.fillRect(r.x - 12, r.y + 10, 5, 10);
+    ctx.fillRect(r.x + 4, r.y + 10, 5, 10);
+    // name
+    ctx.fillStyle = "#1e1e2e";
+    ctx.font = "bold 14px Comic Sans MS";
+    ctx.fillText(r.name, r.x - 30, r.y - 24);
+  }
+
+  function draw() {
+    clear(ctx, c);
+    // track
+    for (let i = 0; i < runners.length; i++) {
+      ctx.fillStyle = i % 2 ? "#fafafa" : "#fff3d6";
+      ctx.fillRect(0, runners[i].y - 30, c.width, 60);
+    }
+    // start line
+    ctx.fillStyle = "#1e1e2e";
+    ctx.fillRect(34, 30, 3, c.height - 60);
+    // flag
+    ctx.fillStyle = "#1e1e2e";
+    ctx.fillRect(flagX, 20, 3, c.height - 40);
+    ctx.fillStyle = "#e63946";
+    ctx.beginPath();
+    ctx.moveTo(flagX + 3, 20);
+    ctx.lineTo(flagX + 50, 32);
+    ctx.lineTo(flagX + 3, 44);
+    ctx.closePath();
+    ctx.fill();
+
+    runners.forEach(drawRunner);
+
+    if (winner) {
+      ctx.fillStyle = "#ffbf00";
+      ctx.fillRect(c.width / 2 - 130, 10, 260, 30);
+      ctx.fillStyle = "#1e1e2e";
+      ctx.font = "bold 18px Comic Sans MS";
+      ctx.fillText(winner + " wins! Loop ended.", c.width / 2 - 110, 30);
+    } else {
+      drawSpeechBubble(ctx, 50, 12, "Anyone touched flag?  no", "#ffe6e0");
+    }
+  }
+
+  function step() {
+    if (!running) return;
+    // condition: stop when ANY runner reaches the flag
+    for (const r of runners) {
+      r.x += Math.random() * 6;
+      if (r.x + 28 >= flagX) {
+        winner = r.name;
+        running = false;
+        status.textContent = winner + " wins!";
+        draw();
+        return;
+      }
+    }
+    status.textContent = "Running...";
+    draw();
+    raf = setTimeout(step, 60);
+  }
+
+  $("raceStart").onclick = function () {
+    if (running) return;
+    if (winner) reset();
+    running = true;
+    status.textContent = "Go!";
+    step();
+  };
+
+  function reset() {
+    if (raf) clearTimeout(raf);
+    running = false; winner = null;
+    runners.forEach(r => r.x = 40);
+    status.textContent = "Ready, set...";
+    draw();
+  }
+  $("raceReset").onclick = reset;
+  draw();
+})();
+
+/* ============================================================
+   Playground C: Trap the Bug!
+   ============================================================ */
+(function () {
+  const c = $("bugCanvas");
+  if (!c) return;
+  const ctx = c.getContext("2d");
+  const status = $("bugStatus");
+
+  let bug = { x: 200, y: 140, vx: 6, vy: 4, wing: 0 };
+  let running = false, caught = false, raf = null, ticks = 0;
+
+  function drawBug() {
+    // wings flap
+    bug.wing = (bug.wing + 1) % 8;
+    const wingSize = bug.wing < 4 ? 14 : 10;
+
+    // wings
+    ctx.fillStyle = "rgba(180, 220, 255, 0.7)";
+    ctx.beginPath();
+    ctx.ellipse(bug.x - 10, bug.y - 6, wingSize, 8, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(bug.x + 10, bug.y - 6, wingSize, 8, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // body
+    ctx.fillStyle = caught ? "#9966ff" : "#4cbf56";
+    ctx.beginPath();
+    ctx.ellipse(bug.x, bug.y, 16, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // head
+    ctx.beginPath();
+    ctx.arc(bug.x + 12, bug.y - 4, 8, 0, Math.PI * 2);
+    ctx.fill();
+    // eyes
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(bug.x + 16, bug.y - 6, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#1e1e2e";
+    ctx.beginPath();
+    ctx.arc(bug.x + 17, bug.y - 6, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function draw() {
+    clear(ctx, c);
+    // sky
+    ctx.fillStyle = "#fef9e7";
+    ctx.fillRect(0, 0, c.width, c.height);
+    // flowers
+    for (let i = 0; i < 6; i++) {
+      const fx = 80 + i * 130;
+      ctx.fillStyle = "#ff6680";
+      ctx.beginPath();
+      ctx.arc(fx, c.height - 30, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#3a8a3a";
+      ctx.fillRect(fx - 1, c.height - 25, 3, 25);
+    }
+    drawBug();
+
+    drawSpeechBubble(ctx, 20, 20,
+      caught ? "Caught?  YES!" : "Caught?  no",
+      caught ? "#d4f5d4" : "#ffe6e0");
+
+    if (caught) {
+      ctx.fillStyle = "#9966ff";
+      ctx.font = "bold 22px Comic Sans MS";
+      ctx.fillText("Got it! Loop ended after " + ticks + " flights.",
+        c.width / 2 - 180, 60);
+    }
+  }
+
+  function step() {
+    if (!running) return;
+    ticks++;
+    bug.x += bug.vx;
+    bug.y += bug.vy;
+    if (bug.x < 30 || bug.x > c.width - 30) bug.vx *= -1;
+    if (bug.y < 30 || bug.y > c.height - 50) bug.vy *= -1;
+    // tiny random wobble
+    bug.vx += (Math.random() - 0.5) * 0.6;
+    bug.vy += (Math.random() - 0.5) * 0.6;
+    bug.vx = Math.max(-7, Math.min(7, bug.vx));
+    bug.vy = Math.max(-5, Math.min(5, bug.vy));
+
+    status.textContent = "Bug flying... loop count: " + ticks;
+    draw();
+    raf = setTimeout(step, 60);
+  }
+
+  $("bugStart").onclick = function () {
+    if (running) return;
+    if (caught) reset();
+    running = true;
+    ticks = 0;
+    status.textContent = "Bug is flying!";
+    step();
+  };
+
+  $("bugCatch").onclick = function () {
+    if (!running) return;
+    // 60% chance to catch on each press
+    if (Math.random() < 0.6) {
+      caught = true;
+      running = false;
+      status.textContent = "Caught after " + ticks + " loop steps!";
+      draw();
+    } else {
+      status.textContent = "Missed! Try again. Loops so far: " + ticks;
+    }
+  };
+
+  function reset() {
+    if (raf) clearTimeout(raf);
+    running = false; caught = false; ticks = 0;
+    bug = { x: 200, y: 140, vx: 6, vy: 4, wing: 0 };
+    status.textContent = "Bug is sleeping";
+    draw();
+  }
+  $("bugReset").onclick = reset;
+  draw();
+})();
+
+/* ============================================================
+   Quiz
+   ============================================================ */
+(function () {
+  const checkBtn = $("quizCheck");
+  if (!checkBtn) return;
+  const scoreEl = $("quizScore");
+  checkBtn.addEventListener("click", function () {
+    const questions = document.querySelectorAll(".quiz .q");
+    let correct = 0;
+    questions.forEach(function (q, i) {
+      const want = q.getAttribute("data-correct");
+      const picked = q.querySelector('input[type=radio]:checked');
+      const fb = q.querySelector(".feedback");
+      if (!picked) {
+        fb.textContent = "Please pick one!";
+        fb.className = "feedback wrong";
+        return;
+      }
+      if (picked.value === want) {
+        fb.textContent = "Correct! Great job!";
+        fb.className = "feedback right";
+        correct++;
+      } else {
+        fb.textContent = "Not quite. Try again!";
+        fb.className = "feedback wrong";
+      }
+    });
+    scoreEl.textContent = "Score: " + correct + " / " + questions.length +
+      (correct === questions.length ? "  You're a repeat-until master!" : "");
+  });
+})();
+
+/* ============================================================
+   Copy buttons for video prompts
+   ============================================================ */
+(function () {
+  document.querySelectorAll(".copy-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const ta = btn.parentElement.querySelector("textarea");
+      if (!ta) return;
+      ta.select();
+      try {
+        document.execCommand("copy");
+        const original = btn.textContent;
+        btn.textContent = "Copied!";
+        setTimeout(function () { btn.textContent = original; }, 1500);
+      } catch (e) {
+        btn.textContent = "Press Ctrl+C";
+      }
+      window.getSelection().removeAllRanges();
+    });
+  });
+})();
+</script>
+</body>
+</html>
