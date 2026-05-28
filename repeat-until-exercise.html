@@ -723,6 +723,22 @@
       sol.style.display = 'block';
     }
   }
+
+  // Save/load input values to/from localStorage so they persist on refresh
+  document.addEventListener('DOMContentLoaded', function() {
+    var inputs = document.querySelectorAll('.fill-row input');
+    inputs.forEach(function(input, index) {
+      // Load saved value
+      var savedValue = localStorage.getItem('scratch_exercise_input_' + index);
+      if (savedValue !== null) {
+        input.value = savedValue;
+      }
+      // Save value on typing
+      input.addEventListener('input', function() {
+        localStorage.setItem('scratch_exercise_input_' + index, input.value);
+      });
+    });
+  });
 </script>
 </body>
 </html>
