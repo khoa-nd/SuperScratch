@@ -265,10 +265,10 @@
 
   <!-- BÀI TẬP 1 -->
   <section class="exercise">
-    <h2>Bài Tập 1: Robot Dọn Rác</h2>
-    
+    <h2>Bài Tập 1: Mèo Đi Đến Cạnh Sân Khấu</h2>
+
     <div class="statement">
-      <strong>Đề bài:</strong> Robot được giao nhiệm vụ nhặt rác trên sân trường. Robot cần đi thẳng về phía trước để nhặt rác <strong>cho đến khi</strong> không còn túi rác nào trên sân nữa thì dừng lại.
+      <strong>Đề bài:</strong> Chú mèo Scratch Cat đi thẳng về phía trước từng bước nhỏ. Mèo sẽ liên tục di chuyển <strong>cho đến khi</strong> tọa độ x lớn hơn 200 (chạm cạnh phải sân khấu) thì dừng lại và nói "Tới nơi rồi!".
     </div>
 
     <div class="analysis-section">
@@ -292,16 +292,18 @@
         <h3>Đáp án Scratch Code Block (English):</h3>
         <div class="blocks">
           <div class="block event">when green flag clicked</div>
+          <div class="block motion">go to x: <span class="num-input">-200</span> y: <span class="num-input">0</span></div>
           <div class="c-block">
-            <div class="top">repeat until <span class="bool-input"><span>no trash in the yard?</span></span></div>
+            <div class="top">repeat until <span class="bool-input"><span>x position &gt; 200</span></span></div>
             <div class="body">
               <div class="blocks">
                 <div class="block motion">move <span class="num-input">10</span> steps</div>
-                <div class="block looks">say <span class="num-input">Pick up trash!</span> for <span class="num-input">1</span> seconds</div>
+                <div class="block control">wait <span class="num-input">0.1</span> seconds</div>
               </div>
             </div>
             <div class="bottom" style="background: var(--scratch-orange-dark); border-radius: 0 0 4px 4px; min-height: 10px;"></div>
           </div>
+          <div class="block looks">say <span class="num-input">Arrived!</span> for <span class="num-input">2</span> seconds</div>
         </div>
       </div>
     </div>
@@ -337,10 +339,10 @@
         <div class="blocks">
           <div class="block event">when green flag clicked</div>
           <div class="c-block">
-            <div class="top">repeat until <span class="bool-input"><span>touching Mouse?</span></span></div>
+            <div class="top">repeat until <span class="bool-input"><span>touching Mouse ?</span></span></div>
             <div class="body">
               <div class="blocks">
-                <div class="block motion">point towards <span class="num-input">Mouse</span></div>
+                <div class="block motion">point towards <span class="num-input">Mouse ▾</span></div>
                 <div class="block motion">move <span class="num-input">5</span> steps</div>
               </div>
             </div>
@@ -490,9 +492,9 @@
   <!-- BÀI TẬP 6 -->
   <section class="exercise">
     <h2>Bài Tập 6: Gõ Cửa Đến Khi Được Mở</h2>
-    
+
     <div class="statement">
-      <strong>Đề bài:</strong> Chú thỏ đến nhà bạn chơi. Thỏ sẽ liên tục gõ cửa "Cộc cộc!" và chờ 1 giây <strong>cho đến khi</strong> cửa mở (biến Door Open = yes) thì đi vào nhà.
+      <strong>Đề bài:</strong> Chú thỏ đến nhà bạn chơi. Thỏ sẽ liên tục gõ cửa "Cộc cộc!" và chờ 1 giây <strong>cho đến khi</strong> người chơi nhấn phím "o" (open) thì đi vào nhà.
     </div>
 
     <div class="analysis-section">
@@ -517,7 +519,7 @@
         <div class="blocks">
           <div class="block event">when green flag clicked</div>
           <div class="c-block">
-            <div class="top">repeat until <span class="bool-input"><span>Door Open = yes</span></span></div>
+            <div class="top">repeat until <span class="bool-input"><span>key o pressed?</span></span></div>
             <div class="body">
               <div class="blocks">
                 <div class="block looks">say <span class="num-input">Knock Knock!</span> for <span class="num-input">1</span> seconds</div>
@@ -701,7 +703,7 @@
             <div class="top">repeat until <span class="bool-input"><span>key space pressed?</span></span></div>
             <div class="body">
               <div class="blocks">
-                <div class="block motion">turn right <span class="num-input">15</span> degrees</div>
+                <div class="block motion">turn ↻ <span class="num-input">15</span> degrees</div>
                 <div class="block control">wait <span class="num-input">0.1</span> seconds</div>
               </div>
             </div>
