@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bài tập Scratch: Vòng lặp Repeat Until</title>
+<style>
+  :root {
+    --scratch-orange: #ff8c1a;
+    --scratch-orange-dark: #db6e00;
+    --scratch-yellow: #ffbf00;
+    --scratch-blue: #4c97ff;
+    --scratch-green: #4cbf56;
+    --scratch-purple: #9966ff;
+    --scratch-pink: #ff6680;
+    --bg: #f5f9ff;
+    --paper: #ffffff;
+    --ink: #2b2b3b;
+    --ink-soft: #5a5a72;
+    --shadow: 0 6px 0 rgba(0, 0, 0, 0.08);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: "Comic Sans MS", "Chalkboard SE", "Comic Neue", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+  }
+
+  .wrap {
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 30px 15px 80px;
+  }
+
+  header.hero {
+    background: linear-gradient(135deg, #4c97ff 0%, #9966ff 100%);
+    border-radius: 20px;
+    padding: 35px 20px;
+    color: white;
+    text-align: center;
+    box-shadow: var(--shadow);
+    margin-bottom: 35px;
+  }
+
+  header.hero h1 { margin: 0; font-size: 30px; }
+  header.hero p { margin: 10px 0 0; font-size: 17px; opacity: 0.95; }
+
+  section.exercise {
+    background: var(--paper);
+    border-radius: 18px;
+    padding: 26px;
+    box-shadow: var(--shadow);
+    border: 3px solid #e1ecff;
+    margin-bottom: 35px;
+  }
+
+  h2 {
+    margin-top: 0;
+    color: #4c97ff;
+    font-size: 22px;
+    border-bottom: 2px dashed #e1ecff;
+    padding-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .statement {
+    background: #fff9eb;
+    border-left: 6px solid var(--scratch-orange);
+    padding: 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 16.5px;
+  }
+
+  .analysis-section {
+    background: #f0f6ff;
+    border: 2px solid #cbdfff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .analysis-section h3 {
+    margin-top: 0;
+    font-size: 16px;
+    color: #3b5998;
+  }
+
+  .fill-box {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .fill-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .fill-row label {
+    font-weight: bold;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  .fill-row input {
+    padding: 12px;
+    border: 2px solid #cbdfff;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .fill-row input:focus {
+    border-color: var(--scratch-blue);
+  }
+
+  /* Scratch CSS blocks */
+  .scratch-container {
+    margin-top: 20px;
+  }
+
+  .scratch-container h3 {
+    font-size: 16px;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+  }
+
+  .blocks {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-weight: bold;
+    font-size: 14px;
+    background: #fafafa;
+    padding: 16px;
+    border: 2px dashed #cbdfff;
+    border-radius: 12px;
+    user-select: none;
+  }
+
+  .block {
+    color: white;
+    padding: 8px 14px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.18) inset, 0 1px 0 rgba(255, 255, 255, 0.18) inset;
+    min-height: 32px;
+  }
+  
+  .block + .block { margin-top: -2px; }
+
+  .block.event { background: #ffbf00; color: #563b00; }
+  .block.motion { background: var(--scratch-blue); }
+  .block.looks { background: var(--scratch-purple); }
+  .block.sensing { background: #5cb1d6; }
+  .block.control { background: var(--scratch-orange); }
+  .block.variables { background: #ff8c1a; }
+  .block.operators { background: var(--scratch-green); }
+
+  .block .num-input {
+    background: white;
+    color: black;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 13px;
+    border: none;
+    font-weight: bold;
+  }
+
+  .block .bool-input {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 4px;
+    padding: 2px 14px;
+    transform: skewX(-25deg);
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .block .bool-input span { display: inline-block; transform: skewX(25deg); }
+
+  .c-block {
+    display: flex;
+    flex-direction: column;
+    background: var(--scratch-orange);
+    border-radius: 4px;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.18) inset;
+    margin-top: -2px;
+  }
+
+  .c-block .top, .c-block .bottom {
+    color: white;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+  }
+
+  .c-block .body {
+    padding: 4px 4px 4px 18px;
+    border-left: 14px solid var(--scratch-orange);
+    background: transparent;
+  }
+
+  .c-block .body .blocks {
+    border: none;
+    padding: 0;
+    background: transparent;
+  }
+  
+  .c-block .body .blocks .block + .block { margin-top: -2px; }
+
+  .show-sol-btn {
+    background: var(--scratch-green);
+    color: white;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 15px;
+    box-shadow: 0 4px 0 #2f8a3a;
+    margin-top: 15px;
+    transition: transform 0.05s;
+  }
+
+  .show-sol-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #2f8a3a;
+  }
+
+  .solution-box {
+    margin-top: 15px;
+    display: none;
+  }
+
+  .solution-box.active {
+    display: block;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <h1>Luyện tập Vòng Lặp "Repeat Until" trong Scratch</h1>
+    <p>Giúp bé hiểu cách dùng khối điều khiển Lặp Cho Đến Khi với 10 bài tập sinh động!</p>
+  </header>
+
+  <!-- BÀI TẬP 1 -->
+  <section class="exercise">
+    <h2>Bài Tập 1: Robot Dọn Rác</h2>
+    
+    <div class="statement">
+      <strong>Đề bài:</strong> Robot được giao nhiệm vụ nhặt rác trên sân trường. Robot cần đi thẳng về phía trước để nhặt rác <strong>cho đến khi</strong> không còn túi rác nào trên sân nữa thì dừng lại.
+    </div>
+
+    <div class="analysis-section">
+      <h3>Phân Tích Đề Bài (Bé hãy điền vào ô trống):</h3>
+      <div class="fill-box">
+        <div class="fill-row">
+          <label>Điều kiện để dừng lại (Condition) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+        <div class="fill-row">
+          <label>Việc làm cần lặp đi lặp lại (Tasks to do) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+      </div>
+    </div>
+
+    <button class="show-sol-btn" onclick="toggleSolution(1)">Xem Đáp Án</button>
+
+    <div class="solution-box" id="solution-1">
+      <div class="scratch-container">
+        <h3>Đáp án Scratch Code Block (English):</h3>
+        <div class="blocks">
+          <div class="block event">when green flag clicked</div>
+          <div class="c-block">
+            <div class="top">repeat until <span class="bool-input"><span>no trash in the yard?</span></span></div>
+            <div class="body">
+              <div class="blocks">
+                <div class="block motion">move <span class="num-input">10</span> steps</div>
+                <div class="block looks">say <span class="num-input">Pick up trash!</span> for <span class="num-input">1</span> seconds</div>
+              </div>
+            </div>
+            <div class="bottom" style="background: var(--scratch-orange-dark); border-radius: 0 0 4px 4px; min-height: 10px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BÀI TẬP 2 -->
+  <section class="exercise">
+    <h2>Bài Tập 2: Mèo Đuổi Chuột</h2>
+    
+    <div class="statement">
+      <strong>Đề bài:</strong> Chú mèo Scratch Cat đang đuổi theo chú chuột Mouse. Mèo sẽ chạy liên tục về hướng chú chuột <strong>cho đến khi</strong> chạm vào chú chuột thì dừng lại và kêu "Meo!".
+    </div>
+
+    <div class="analysis-section">
+      <h3>Phân Tích Đề Bài (Bé hãy điền vào ô trống):</h3>
+      <div class="fill-box">
+        <div class="fill-row">
+          <label>Điều kiện để dừng lại (Condition) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+        <div class="fill-row">
+          <label>Việc làm cần lặp đi lặp lại (Tasks to do) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+      </div>
+    </div>
+
+    <button class="show-sol-btn" onclick="toggleSolution(2)">Xem Đáp Án</button>
+
+    <div class="solution-box" id="solution-2">
+      <div class="scratch-container">
+        <h3>Đáp án Scratch Code Block (English):</h3>
+        <div class="blocks">
+          <div class="block event">when green flag clicked</div>
+          <div class="c-block">
+            <div class="top">repeat until <span class="bool-input"><span>touching Mouse?</span></span></div>
+            <div class="body">
+              <div class="blocks">
+                <div class="block motion">point towards <span class="num-input">Mouse</span></div>
+                <div class="block motion">move <span class="num-input">5</span> steps</div>
+              </div>
+            </div>
+            <div class="bottom" style="background: var(--scratch-orange-dark); border-radius: 0 0 4px 4px; min-height: 10px;"></div>
+          </div>
+          <div class="block looks">say <span class="num-input">Meow!</span> for <span class="num-input">2</span> seconds</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BÀI TẬP 3 -->
+  <section class="exercise">
+    <h2>Bài Tập 3: Đổ Nước Vào Bình</h2>
+    
+    <div class="statement">
+      <strong>Đề bài:</strong> Một chiếc vòi tự động bơm từng lít nước vào bình. Vòi sẽ liên tục bơm nước <strong>cho đến khi</strong> lượng nước đạt đúng 10 lít (đầy bình) thì tự động đóng vòi.
+    </div>
+
+    <div class="analysis-section">
+      <h3>Phân Tích Đề Bài (Bé hãy điền vào ô trống):</h3>
+      <div class="fill-box">
+        <div class="fill-row">
+          <label>Điều kiện để dừng lại (Condition) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+        <div class="fill-row">
+          <label>Việc làm cần lặp đi lặp lại (Tasks to do) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+      </div>
+    </div>
+
+    <button class="show-sol-btn" onclick="toggleSolution(3)">Xem Đáp Án</button>
+
+    <div class="solution-box" id="solution-3">
+      <div class="scratch-container">
+        <h3>Đáp án Scratch Code Block (English):</h3>
+        <div class="blocks">
+          <div class="block event">when green flag clicked</div>
+          <div class="block variables">set <span class="num-input">water</span> to <span class="num-input">0</span></div>
+          <div class="c-block">
+            <div class="top">repeat until <span class="bool-input"><span>water = 10</span></span></div>
+            <div class="body">
+              <div class="blocks">
+                <div class="block variables">change <span class="num-input">water</span> by <span class="num-input">1</span></div>
+                <div class="block control">wait <span class="num-input">0.5</span> seconds</div>
+              </div>
+            </div>
+            <div class="bottom" style="background: var(--scratch-orange-dark); border-radius: 0 0 4px 4px; min-height: 10px;"></div>
+          </div>
+          <div class="block looks">say <span class="num-input">Full bottle!</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BÀI TẬP 4 -->
+  <section class="exercise">
+    <h2>Bài Tập 4: Tránh Bức Tường</h2>
+    
+    <div class="statement">
+      <strong>Đề bài:</strong> Xe ô tô tự lái đi thẳng trên đường. Xe sẽ liên tục di chuyển về phía trước <strong>cho đến khi</strong> khoảng cách tới bức tường phía trước nhỏ hơn 20 cm thì dừng lại để tránh va chạm.
+    </div>
+
+    <div class="analysis-section">
+      <h3>Phân Tích Đề Bài (Bé hãy điền vào ô trống):</h3>
+      <div class="fill-box">
+        <div class="fill-row">
+          <label>Điều kiện để dừng lại (Condition) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+        <div class="fill-row">
+          <label>Việc làm cần lặp đi lặp lại (Tasks to do) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+      </div>
+    </div>
+
+    <button class="show-sol-btn" onclick="toggleSolution(4)">Xem Đáp Án</button>
+
+    <div class="solution-box" id="solution-4">
+      <div class="scratch-container">
+        <h3>Đáp án Scratch Code Block (English):</h3>
+        <div class="blocks">
+          <div class="block event">when green flag clicked</div>
+          <div class="c-block">
+            <div class="top">repeat until <span class="bool-input"><span>distance to wall &lt; 20</span></span></div>
+            <div class="body">
+              <div class="blocks">
+                <div class="block motion">move <span class="num-input">4</span> steps</div>
+              </div>
+            </div>
+            <div class="bottom" style="background: var(--scratch-orange-dark); border-radius: 0 0 4px 4px; min-height: 10px;"></div>
+          </div>
+          <div class="block looks">say <span class="num-input">Stop! Wall detected!</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BÀI TẬP 5 -->
+  <section class="exercise">
+    <h2>Bài Tập 5: Thợ Lặn Tìm Ngọc Trai</h2>
+    
+    <div class="statement">
+      <strong>Đề bài:</strong> Thợ lặn lặn sâu dần xuống đáy đại dương để tìm ngọc trai. Thợ lặn sẽ thay đổi tọa độ Y đi xuống <strong>cho đến khi</strong> chạm vào chú trai ngọc (Pearl) thì dừng lại.
+    </div>
+
+    <div class="analysis-section">
+      <h3>Phân Tích Đề Bài (Bé hãy điền vào ô trống):</h3>
+      <div class="fill-box">
+        <div class="fill-row">
+          <label>Điều kiện để dừng lại (Condition) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+        <div class="fill-row">
+          <label>Việc làm cần lặp đi lặp lại (Tasks to do) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+      </div>
+    </div>
+
+    <button class="show-sol-btn" onclick="toggleSolution(5)">Xem Đáp Án</button>
+
+    <div class="solution-box" id="solution-5">
+      <div class="scratch-container">
+        <h3>Đáp án Scratch Code Block (English):</h3>
+        <div class="blocks">
+          <div class="block event">when green flag clicked</div>
+          <div class="c-block">
+            <div class="top">repeat until <span class="bool-input"><span>touching Pearl?</span></span></div>
+            <div class="body">
+              <div class="blocks">
+                <div class="block motion">change y by <span class="num-input">-5</span></div>
+                <div class="block control">wait <span class="num-input">0.1</span> seconds</div>
+              </div>
+            </div>
+            <div class="bottom" style="background: var(--scratch-orange-dark); border-radius: 0 0 4px 4px; min-height: 10px;"></div>
+          </div>
+          <div class="block looks">say <span class="num-input">I found the pearl!</span> for <span class="num-input">2</span> seconds</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BÀI TẬP 6 -->
+  <section class="exercise">
+    <h2>Bài Tập 6: Gõ Cửa Đến Khi Được Mở</h2>
+    
+    <div class="statement">
+      <strong>Đề bài:</strong> Chú thỏ đến nhà bạn chơi. Thỏ sẽ liên tục gõ cửa "Cộc cộc!" và chờ 1 giây <strong>cho đến khi</strong> cửa mở (biến Door Open = yes) thì đi vào nhà.
+    </div>
+
+    <div class="analysis-section">
+      <h3>Phân Tích Đề Bài (Bé hãy điền vào ô trống):</h3>
+      <div class="fill-box">
+        <div class="fill-row">
+          <label>Điều kiện để dừng lại (Condition) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+        <div class="fill-row">
+          <label>Việc làm cần lặp đi lặp lại (Tasks to do) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+      </div>
+    </div>
+
+    <button class="show-sol-btn" onclick="toggleSolution(6)">Xem Đáp Án</button>
+
+    <div class="solution-box" id="solution-6">
+      <div class="scratch-container">
+        <h3>Đáp án Scratch Code Block (English):</h3>
+        <div class="blocks">
+          <div class="block event">when green flag clicked</div>
+          <div class="c-block">
+            <div class="top">repeat until <span class="bool-input"><span>Door Open = yes</span></span></div>
+            <div class="body">
+              <div class="blocks">
+                <div class="block looks">say <span class="num-input">Knock Knock!</span> for <span class="num-input">1</span> seconds</div>
+                <div class="block control">wait <span class="num-input">1</span> seconds</div>
+              </div>
+            </div>
+            <div class="bottom" style="background: var(--scratch-orange-dark); border-radius: 0 0 4px 4px; min-height: 10px;"></div>
+          </div>
+          <div class="block motion">move <span class="num-input">20</span> steps</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BÀI TẬP 7 -->
+  <section class="exercise">
+    <h2>Bài Tập 7: Game Đoán Số</h2>
+    
+    <div class="statement">
+      <strong>Đề bài:</strong> Máy tính nghĩ ra một số bí mật từ 1 đến 10. Người chơi nhập câu trả lời. Trò chơi sẽ liên tục hỏi "Hãy đoán số!" và đợi câu trả lời <strong>cho đến khi</strong> câu trả lời (answer) bằng số bí mật (secret number) thì chúc mừng chiến thắng.
+    </div>
+
+    <div class="analysis-section">
+      <h3>Phân Tích Đề Bài (Bé hãy điền vào ô trống):</h3>
+      <div class="fill-box">
+        <div class="fill-row">
+          <label>Điều kiện để dừng lại (Condition) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+        <div class="fill-row">
+          <label>Việc làm cần lặp đi lặp lại (Tasks to do) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+      </div>
+    </div>
+
+    <button class="show-sol-btn" onclick="toggleSolution(7)">Xem Đáp Án</button>
+
+    <div class="solution-box" id="solution-7">
+      <div class="scratch-container">
+        <h3>Đáp án Scratch Code Block (English):</h3>
+        <div class="blocks">
+          <div class="block event">when green flag clicked</div>
+          <div class="block variables">set <span class="num-input">secret number</span> to <span class="num-input">7</span></div>
+          <div class="c-block">
+            <div class="top">repeat until <span class="bool-input"><span>answer = secret number</span></span></div>
+            <div class="body">
+              <div class="blocks">
+                <div class="block sensing">ask <span class="num-input">Guess the number (1-10):</span> and wait</div>
+              </div>
+            </div>
+            <div class="bottom" style="background: var(--scratch-orange-dark); border-radius: 0 0 4px 4px; min-height: 10px;"></div>
+          </div>
+          <div class="block looks">say <span class="num-input">You Win!</span> for <span class="num-input">2</span> seconds</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BÀI TẬP 8 -->
+  <section class="exercise">
+    <h2>Bài Tập 8: Máy Bay Hạ Cánh</h2>
+    
+    <div class="statement">
+      <strong>Đề bài:</strong> Chiếc phi cơ đang bay trên cao. Để hạ cánh, phi cơ giảm độ cao bằng cách đổi tọa độ Y xuống dưới <strong>cho đến khi</strong> tọa độ Y nhỏ hơn hoặc bằng -120 (chạm đất) thì dừng lại.
+    </div>
+
+    <div class="analysis-section">
+      <h3>Phân Tích Đề Bài (Bé hãy điền vào ô trống):</h3>
+      <div class="fill-box">
+        <div class="fill-row">
+          <label>Điều kiện để dừng lại (Condition) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+        <div class="fill-row">
+          <label>Việc làm cần lặp đi lặp lại (Tasks to do) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+      </div>
+    </div>
+
+    <button class="show-sol-btn" onclick="toggleSolution(8)">Xem Đáp Án</button>
+
+    <div class="solution-box" id="solution-8">
+      <div class="scratch-container">
+        <h3>Đáp án Scratch Code Block (English):</h3>
+        <div class="blocks">
+          <div class="block event">when green flag clicked</div>
+          <div class="c-block">
+            <div class="top">repeat until <span class="bool-input"><span>y position &lt; -120</span></span></div>
+            <div class="body">
+              <div class="blocks">
+                <div class="block motion">change y by <span class="num-input">-10</span></div>
+                <div class="block control">wait <span class="num-input">0.2</span> seconds</div>
+              </div>
+            </div>
+            <div class="bottom" style="background: var(--scratch-orange-dark); border-radius: 0 0 4px 4px; min-height: 10px;"></div>
+          </div>
+          <div class="block looks">say <span class="num-input">Landed successfully!</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BÀI TẬP 9 -->
+  <section class="exercise">
+    <h2>Bài Tập 9: Sạc Pin Cho Robot</h2>
+    
+    <div class="statement">
+      <strong>Đề bài:</strong> Robot cạn năng lượng được cắm sạc. Mỗi giây robot được sạc thêm 5% pin. Robot sẽ sạc liên tục <strong>cho đến khi</strong> mức pin (battery) lớn hơn hoặc bằng 100% thì tự ngắt.
+    </div>
+
+    <div class="analysis-section">
+      <h3>Phân Tích Đề Bài (Bé hãy điền vào ô trống):</h3>
+      <div class="fill-box">
+        <div class="fill-row">
+          <label>Điều kiện để dừng lại (Condition) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+        <div class="fill-row">
+          <label>Việc làm cần lặp đi lặp lại (Tasks to do) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+      </div>
+    </div>
+
+    <button class="show-sol-btn" onclick="toggleSolution(9)">Xem Đáp Án</button>
+
+    <div class="solution-box" id="solution-9">
+      <div class="scratch-container">
+        <h3>Đáp án Scratch Code Block (English):</h3>
+        <div class="blocks">
+          <div class="block event">when green flag clicked</div>
+          <div class="block variables">set <span class="num-input">battery</span> to <span class="num-input">0</span></div>
+          <div class="c-block">
+            <div class="top">repeat until <span class="bool-input"><span>battery &gt; 99</span></span></div>
+            <div class="body">
+              <div class="blocks">
+                <div class="block variables">change <span class="num-input">battery</span> by <span class="num-input">5</span></div>
+                <div class="block control">wait <span class="num-input">1</span> seconds</div>
+              </div>
+            </div>
+            <div class="bottom" style="background: var(--scratch-orange-dark); border-radius: 0 0 4px 4px; min-height: 10px;"></div>
+          </div>
+          <div class="block looks">say <span class="num-input">Fully Charged!</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BÀI TẬP 10 -->
+  <section class="exercise">
+    <h2>Bài Tập 10: Xoay Khối Hộp Đến Khi Người Chơi Dừng</h2>
+    
+    <div class="statement">
+      <strong>Đề bài:</strong> Một khối hộp 3D liên tục tự xoay tròn 15 độ. Khối hộp sẽ tự động xoay <strong>cho đến khi</strong> người chơi nhấn phím khoảng trắng (space key pressed) thì dừng xoay.
+    </div>
+
+    <div class="analysis-section">
+      <h3>Phân Tích Đề Bài (Bé hãy điền vào ô trống):</h3>
+      <div class="fill-box">
+        <div class="fill-row">
+          <label>Điều kiện để dừng lại (Condition) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+        <div class="fill-row">
+          <label>Việc làm cần lặp đi lặp lại (Tasks to do) là gì?</label>
+          <input type="text" placeholder="...">
+        </div>
+      </div>
+    </div>
+
+    <button class="show-sol-btn" onclick="toggleSolution(10)">Xem Đáp Án</button>
+
+    <div class="solution-box" id="solution-10">
+      <div class="scratch-container">
+        <h3>Đáp án Scratch Code Block (English):</h3>
+        <div class="blocks">
+          <div class="block event">when green flag clicked</div>
+          <div class="c-block">
+            <div class="top">repeat until <span class="bool-input"><span>key space pressed?</span></span></div>
+            <div class="body">
+              <div class="blocks">
+                <div class="block motion">turn right <span class="num-input">15</span> degrees</div>
+                <div class="block control">wait <span class="num-input">0.1</span> seconds</div>
+              </div>
+            </div>
+            <div class="bottom" style="background: var(--scratch-orange-dark); border-radius: 0 0 4px 4px; min-height: 10px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  function toggleSolution(id) {
+    var sol = document.getElementById('solution-' + id);
+    if (sol.style.display === 'block') {
+      sol.style.display = 'none';
+    } else {
+      sol.style.display = 'block';
+    }
+  }
+</script>
+</body>
+</html>
