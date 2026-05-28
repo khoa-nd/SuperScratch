@@ -246,6 +246,32 @@
     box-shadow: 0 2px 0 #2f8a3a;
   }
 
+  .save-btn {
+    background: var(--scratch-blue);
+    color: white;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 15px;
+    box-shadow: 0 4px 0 #3373cc;
+    margin-top: 15px;
+    margin-right: 10px;
+    transition: transform 0.05s, background 0.2s;
+  }
+
+  .save-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #3373cc;
+  }
+
+  .save-btn.saved {
+    background: var(--scratch-green);
+    box-shadow: 0 4px 0 #2f8a3a;
+  }
+
   .solution-box {
     margin-top: 15px;
     display: none;
@@ -285,6 +311,7 @@
       </div>
     </div>
 
+    <button class="save-btn" onclick="saveExercise(1, this)">Lưu Bài Làm</button>
     <button class="show-sol-btn" onclick="toggleSolution(1)">Xem Đáp Án</button>
 
     <div class="solution-box" id="solution-1">
@@ -331,6 +358,7 @@
       </div>
     </div>
 
+    <button class="save-btn" onclick="saveExercise(2, this)">Lưu Bài Làm</button>
     <button class="show-sol-btn" onclick="toggleSolution(2)">Xem Đáp Án</button>
 
     <div class="solution-box" id="solution-2">
@@ -376,6 +404,7 @@
       </div>
     </div>
 
+    <button class="save-btn" onclick="saveExercise(3, this)">Lưu Bài Làm</button>
     <button class="show-sol-btn" onclick="toggleSolution(3)">Xem Đáp Án</button>
 
     <div class="solution-box" id="solution-3">
@@ -422,6 +451,7 @@
       </div>
     </div>
 
+    <button class="save-btn" onclick="saveExercise(4, this)">Lưu Bài Làm</button>
     <button class="show-sol-btn" onclick="toggleSolution(4)">Xem Đáp Án</button>
 
     <div class="solution-box" id="solution-4">
@@ -466,6 +496,7 @@
       </div>
     </div>
 
+    <button class="save-btn" onclick="saveExercise(5, this)">Lưu Bài Làm</button>
     <button class="show-sol-btn" onclick="toggleSolution(5)">Xem Đáp Án</button>
 
     <div class="solution-box" id="solution-5">
@@ -511,6 +542,7 @@
       </div>
     </div>
 
+    <button class="save-btn" onclick="saveExercise(6, this)">Lưu Bài Làm</button>
     <button class="show-sol-btn" onclick="toggleSolution(6)">Xem Đáp Án</button>
 
     <div class="solution-box" id="solution-6">
@@ -556,6 +588,7 @@
       </div>
     </div>
 
+    <button class="save-btn" onclick="saveExercise(7, this)">Lưu Bài Làm</button>
     <button class="show-sol-btn" onclick="toggleSolution(7)">Xem Đáp Án</button>
 
     <div class="solution-box" id="solution-7">
@@ -601,6 +634,7 @@
       </div>
     </div>
 
+    <button class="save-btn" onclick="saveExercise(8, this)">Lưu Bài Làm</button>
     <button class="show-sol-btn" onclick="toggleSolution(8)">Xem Đáp Án</button>
 
     <div class="solution-box" id="solution-8">
@@ -646,6 +680,7 @@
       </div>
     </div>
 
+    <button class="save-btn" onclick="saveExercise(9, this)">Lưu Bài Làm</button>
     <button class="show-sol-btn" onclick="toggleSolution(9)">Xem Đáp Án</button>
 
     <div class="solution-box" id="solution-9">
@@ -692,6 +727,7 @@
       </div>
     </div>
 
+    <button class="save-btn" onclick="saveExercise(10, this)">Lưu Bài Làm</button>
     <button class="show-sol-btn" onclick="toggleSolution(10)">Xem Đáp Án</button>
 
     <div class="solution-box" id="solution-10">
@@ -726,18 +762,37 @@
     }
   }
 
+  function saveExercise(id, btn) {
+    var section = btn.closest('.exercise');
+    var inputs = section.querySelectorAll('.fill-row input');
+    inputs[0] && localStorage.setItem('scratch_exercise_' + id + '_condition', inputs[0].value);
+    inputs[1] && localStorage.setItem('scratch_exercise_' + id + '_tasks', inputs[1].value);
+    var originalText = 'Lưu Bài Làm';
+    btn.textContent = 'Đã Lưu ✓';
+    btn.classList.add('saved');
+    setTimeout(function() {
+      btn.textContent = originalText;
+      btn.classList.remove('saved');
+    }, 1500);
+  }
+
   // Save/load input values to/from localStorage so they persist on refresh
   document.addEventListener('DOMContentLoaded', function() {
-    var inputs = document.querySelectorAll('.fill-row input');
-    inputs.forEach(function(input, index) {
-      // Load saved value
-      var savedValue = localStorage.getItem('scratch_exercise_input_' + index);
-      if (savedValue !== null) {
-        input.value = savedValue;
-      }
-      // Save value on typing
-      input.addEventListener('input', function() {
-        localStorage.setItem('scratch_exercise_input_' + index, input.value);
+    var sections = document.querySelectorAll('section.exercise');
+    sections.forEach(function(section, sIdx) {
+      var id = sIdx + 1;
+      var inputs = section.querySelectorAll('.fill-row input');
+      var keys = ['scratch_exercise_' + id + '_condition', 'scratch_exercise_' + id + '_tasks'];
+      inputs.forEach(function(input, i) {
+        var saved = localStorage.getItem(keys[i]);
+        if (saved === null) {
+          // Fallback to legacy indexed key
+          saved = localStorage.getItem('scratch_exercise_input_' + (sIdx * 2 + i));
+        }
+        if (saved !== null) input.value = saved;
+        input.addEventListener('input', function() {
+          localStorage.setItem(keys[i], input.value);
+        });
       });
     });
   });
