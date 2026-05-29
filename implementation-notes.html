@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Implementation Notes — product_20260520.md</title>
+<style>
+  :root {
+    --paper: #f4f3ef;
+    --paper2: #ecead2;
+    --ink: #2a2522;
+    --ink2: #4a4440;
+    --ink3: #7a756f;
+    --hair: rgba(42, 37, 34, 0.10);
+    --accent: #e8913a;
+    --accentInk: #7a3d0a;
+    --positive: #00897b;
+    --negative: #e53935;
+  }
+  body {
+    font-family: -apple-system, "Inter", system-ui, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    max-width: 880px;
+    margin: 40px auto;
+    padding: 0 20px 80px;
+    line-height: 1.55;
+  }
+  h1 { font-size: 28px; letter-spacing: -0.01em; margin-bottom: 4px; }
+  h2 { font-size: 20px; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--hair); }
+  h3 { font-size: 15px; color: var(--ink2); margin-top: 22px; margin-bottom: 6px; }
+  .subtitle { color: var(--ink3); font-size: 14px; margin-bottom: 32px; }
+  .badge {
+    display: inline-block;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: var(--paper2);
+    color: var(--ink2);
+    margin-right: 6px;
+  }
+  .badge.done { background: rgba(0, 137, 123, 0.12); color: var(--positive); }
+  .badge.partial { background: rgba(232, 145, 58, 0.18); color: var(--accentInk); }
+  .badge.pending { background: rgba(122, 117, 111, 0.14); color: var(--ink3); }
+  .badge.qa { background: rgba(229, 57, 53, 0.10); color: var(--negative); }
+  code { background: var(--paper2); padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+  pre { background: var(--paper2); padding: 12px 14px; border-radius: 8px; font-size: 13px; overflow-x: auto; }
+  ul { padding-left: 22px; }
+  li { margin: 4px 0; }
+  .decision { background: var(--paper2); border-left: 3px solid var(--accent); padding: 10px 14px; margin: 10px 0; border-radius: 4px; }
+  .tradeoff { background: rgba(229, 57, 53, 0.06); border-left: 3px solid var(--negative); padding: 10px 14px; margin: 10px 0; border-radius: 4px; }
+  .qa-item { background: rgba(232, 145, 58, 0.10); border-left: 3px solid var(--accent); padding: 10px 14px; margin: 10px 0; border-radius: 4px; }
+  small { color: var(--ink3); }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--hair); font-size: 13px; }
+  th { color: var(--ink3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<h1>Implementation Notes — product_20260520.md</h1>
+<div class="subtitle">Decisions, tradeoffs, deviations from spec, and other things to know. Last updated 2026-05-28 (Word-tap vocabulary, AI Tutor speak/quiz, AI list layout fixes, phrase composer).</div>
+
+<h2>Status overview</h2>
+<ul>
+  <li><span class="badge done">1 ✓</span> Transcript sentence merging — strict 1/2/3 full-sentence practice chunks</li>
+  <li><span class="badge done">2 ✓</span> "Ask AI Tutor" button on Listen + new conversational AI screen</li>
+  <li><span class="badge done">3 ✓</span> Eye icon swapped to Ionicons (matches tab nav)</li>
+  <li><span class="badge done">4 ✓</span> Active transcript line is now bolded (no background tint)</li>
+  <li><span class="badge done">5 ✓</span> Long-press contextual menu — Ask AI Tutor about selection</li>
+  <li><span class="badge done">6 ✓</span> AI integration plan + dual-mode runtime + Settings screen</li>
+  <li><span class="badge done">7 ✓</span> Home screen — Netflix-style horizontal slider grid & copy/delete actions</li>
+  <li><span class="badge done">8 ✓</span> Bookmark per transcript line + Library Phrase/Vocabulary tabs</li>
+  <li><span class="badge done">9 ✓</span> AI Tutor generated vocabulary/phrases + Library card UX + Home copy/delete actions</li>
+  <li><span class="badge pending">10 …</span> Transcript split stabilization — hybrid local soft-boundary + AI fallback</li>
+  <li><span class="badge done">11 ✓</span> Session restoration on app boot + Sign out button + Home delete-route deploy fix</li>
+  <li><span class="badge done">12 ✓</span> Model Playground — parallel execution, latency, tokens, cost estimate</li>
+  <li><span class="badge done">13 ✓</span> AI Tutor prompt refactoring — output quality parity with playground</li>
+  <li><span class="badge done">14 ✓</span> Dynamic "Clear" input button chip next to Home clipboard actions</li>
+  <li><span class="badge done">15 ✓</span> Keyboard taps persistence behavior (resolves double-tap friction)</li>
+  <li><span class="badge done">16 ✓</span> Spotify-style dark theme redesign — HighlightCover, SpotifyCoverSlider, RankedSlider, SpotifyCoverList</li>
+  <li><span class="badge done">17 ✓</span> Word-tap vocabulary + multi-word phrase composer (Listen)</li>
+  <li><span class="badge done">18 ✓</span> AI Tutor — Speak response, "Do a quiz" starter, list/quiz layout outside bubble shell</li>
+</ul>
+<p><small>Type-check: <code>npx tsc --noEmit</code> passes after all edits.</small></p>
+
+<h2>Item 1 — Transcript sentence merging</h2>
+<p><em>Spec:</em> "combine a full sentence (separated by dot to dot) in a row". Latest constraint: every practice row must contain a full number of English sentences only — exactly one, two, or three sentences, never 1.5 or 2.5 sentences. Target row length is 30-40 words.</p>
+
+<h3>Decisions</h3>
+<div class="decision">
+  Sentence-first splitting in <code>src/services/transcript.ts</code>. The transcript pipeline reconstructs raw YouTube fragments into one timed text stream, detects sentence boundaries, then greedily packs only whole sentence units into practice rows. The row packer never splits inside a detected sentence.
+</div>
+<ul>
+  <li><code>splitIntoSentenceUnits()</code> scans the reconstructed transcript for <code>.</code>, <code>?</code>, and <code>!</code>, accepting closing quotes/parens as part of the sentence ending.</li>
+  <li>False positive guards skip decimals (<code>3.14</code>), all-caps acronym-like periods, and common abbreviations such as <code>Dr.</code>, <code>Mr.</code>, <code>e.g.</code>, <code>i.e.</code>, <code>U.S.</code>, and <code>U.K.</code>.</li>
+  <li><code>packTranscriptLines()</code> groups sentence units into chunks with <strong>1-3 complete sentences</strong>. It targets <strong>30-40 words</strong> per row: one long sentence remains one row; shorter sentences are combined only when two or three full sentences stay within the target.</li>
+  <li>Timing is preserved by mapping character positions back to source fragment timestamps. A merged row uses the first sentence start and last sentence end.</li>
+  <li>The AI split path is also post-processed through <code>packTranscriptLines()</code> in <code>src/services/preprocess.ts</code>, so both Gemini-generated and local-fallback transcript lines obey the same row-shaping rules.</li>
+</ul>
+
+<h3>Tradeoffs / known limits</h3>
+<div class="tradeoff">
+  <strong>Transcripts with no punctuation</strong> cannot strictly satisfy "full English sentences" locally because there are no reliable sentence boundaries to preserve. In that case the app falls back to <code>mergeByWordCount()</code> at about <code>45</code> words to avoid a single giant row. The preferred path is the Gemini <code>/ai/split-transcript</code> preprocessing step, whose prompt now explicitly asks for exactly 1, 2, or 3 complete sentences per segment.
+</div>
+
+<h3>Current constants</h3>
+<table>
+  <tr><th>Constant</th><th>Value</th><th>Meaning</th></tr>
+  <tr><td><code>MAX_SENTENCES_PER_CHUNK</code></td><td>3</td><td>Never pack more than three complete sentences into one practice row.</td></tr>
+  <tr><td><code>MIN_WORDS_PER_CHUNK</code></td><td>30</td><td>Flush a multi-sentence row once it reaches the lower target.</td></tr>
+  <tr><td><code>MAX_WORDS_PER_CHUNK</code></td><td>40</td><td>Do not add another sentence if the combined row would exceed this target.</td></tr>
+  <tr><td><code>UNPUNCTUATED_WORDS_PER_CHUNK</code></td><td>45</td><td>Fallback only when no sentence punctuation exists.</td></tr>
+</table>
+
+<h2>Item 3 — Eye icon alignment with nav</h2>
+<div class="decision">
+  Replaced the emoji glyphs (<code>👁</code> / <code>👁‍🗨</code>) with Ionicons <code>eye-outline</code> and <code>eye-off-outline</code> at size 22, matching the family/size used by the bottom tab bar.
+</div>
+
+<h2>Item 4 — Bold-text highlight</h2>
+<div class="decision">
+  Removed the soft-orange background tint on the active transcript line. The active line's text now uses <code>fontWeight: '700'</code>; the timestamp stays accent-orange so the row remains scannable when scrolled past.
+</div>
+
+<h2>Item 2 — AI Tutor screen + Recall-row button</h2>
+<p><em>Spec:</em> "add one more button called 'Ask AI Tutor' next to Recall… open another screen in a conversational UI… voice and text input… close and get back to practice screen with the same state."</p>
+
+<h3>Decisions</h3>
+<div class="decision">
+  New screen at <code>app/ai-tutor.tsx</code>, registered in <code>app/_layout.tsx</code> with <code>presentation: 'modal'</code> and <code>animation: 'slide_from_bottom'</code>. Modal presentation means the underlying Listen screen stays mounted, so closing the tutor returns the user to the exact same playback / scroll state automatically — that satisfies the "same state" requirement without any persistence work.
+</div>
+
+<h3>UI</h3>
+<ul>
+  <li>Bottom action row on Listen now has three buttons: <strong>Recall →</strong> (primary, ink), <strong>Ask AI Tutor</strong> (ghost, with sparkles icon), and the eye toggle.</li>
+  <li>Chat layout: user bubbles right-aligned (ink background, paper text), AI bubbles left-aligned (paper2 background). A thinking spinner is shown while a response is streaming.</li>
+  <li>Settings gear in the AI Tutor header opens <code>/ai-settings</code> (Item 6).</li>
+</ul>
+
+<div class="tradeoff">
+  <strong>Web caveat:</strong> voice input is disabled on the web build. <code>expo-av</code>'s recording API is native-only; web users see an inline error suggesting they type instead. A Web Speech / MediaRecorder path is feasible later but adds a separate code path for transcription.
+</div>
+
+<h2>Item 5 — Long-press → Ask AI Tutor</h2>
+<p><em>Spec:</em> "long touch on screen and select any vocabulary or sentence, a contextual menu allows me to 'Ask AI Tutor' then open up AI screen above with question like 'Can you explain me &lt;selected_text&gt; in the context of this video?'"</p>
+
+<h3>Decisions</h3>
+<div class="decision">
+  Long-press on a transcript line opens a bottom-sheet contextual menu with three actions: <strong>Ask AI Tutor</strong>, <strong>Play from here</strong>, <strong>Cancel</strong>. Tapping Ask AI Tutor opens the AI screen with the line text pre-filled into the prompt: <code>"Can you explain "&lt;selected&gt;" in the context of this video?"</code>.
+</div>
+
+<h3>Selection granularity — important deviation</h3>
+<div class="tradeoff">
+  React Native does not expose a cross-platform API for arbitrary text-range selection inside a custom view that lets you intercept a "Look Up" / "Define" menu. The spec phrasing ("any vocabulary or sentence") implies free-form word-range selection. That would require either (a) an iOS-only path using <code>UITextView</code> menu items, or (b) re-rendering the transcript inside a WebView so the browser's native selection works.
+  <br /><br />
+  Shipped instead: <strong>line-level selection</strong>. Long-press picks the entire transcript line as the unit. The selected line is shown as a banner at the top of the AI Tutor screen. The user can still ask follow-up questions about a specific word inside the line via free text. If word-level selection becomes important, the cleanest path is a follow-up that adds a "trim selection" sheet between the menu and the AI screen.
+</div>
+
+<h2>Item 6 — AI integration</h2>
+
+<h3>Q&amp;A answers</h3>
+<table>
+  <tr><th>Question</th><th>Answer</th></tr>
+  <tr><td>Providers</td><td>Google Gemini</td></tr>
+  <tr><td>Key storage</td><td>Backend proxy</td></tr>
+  <tr><td>Voice</td><td>Use the configured AI provider's STT</td></tr>
+  <tr><td>Context</td><td>Nearby transcript window + video title</td></tr>
+</table>
+
+<h3>Architecture</h3>
+<div class="decision">
+  Two-mode service in <code>src/services/aiTutor.ts</code>:
+  <ol>
+    <li><strong>Proxy (default):</strong> <code>POST {apiBaseUrl}/ai/chat</code> with <code>{ provider, model, messages, context }</code>. The bearer token from <code>authStore</code> is attached automatically by <code>apiClient</code>. The backend holds the API key — this matches the answer you gave.</li>
+    <li><strong>Direct (fallback):</strong> calls Gemini's <code>generativelanguage.googleapis.com/v1beta/models/{model}:generateContent</code> using a key the user pastes in Settings. Useful before the proxy endpoint ships, and as an escape hatch for testing different keys.</li>
+  </ol>
+  Provider type is an enum (<code>'gemini'</code> only today) so adding OpenAI or Anthropic later is a one-file change.
+</div>
+
+<h3>Files added</h3>
+<table>
+  <tr><th>File</th><th>Purpose</th></tr>
+  <tr><td><code>src/services/aiTutor.ts</code></td><td>chat() with mode router, prompt builder, transcript window helper</td></tr>
+  <tr><td><code>src/stores/aiSettingsStore.ts</code></td><td>Zustand store; persists settings to AsyncStorage under <code>soundknot_ai_settings</code></td></tr>
+  <tr><td><code>app/ai-tutor.tsx</code></td><td>Conversational chat screen — text + voice input, settings gear</td></tr>
+  <tr><td><code>app/ai-settings.tsx</code></td><td>Mode toggle, provider, model picker, API key input, Test connection</td></tr>
+</table>
+
+<h3>Backend contract — what the server needs to expose</h3>
+<p>The proxy endpoint expected by the app:</p>
+<pre>POST /ai/chat
+Authorization: Bearer &lt;user session token&gt;
+Content-Type: application/json
+
+{
+  "provider": "gemini",
+  "model": "gemini-3.5-flash",
+  "messages": [
+    { "role": "user", "content": "what does 'in the saddle' mean?" }
+  ],
+  "context": {
+    "videoTitle": "...",
+    "videoChannel": "...",
+    "videoId": "...",
+    "transcriptWindow": "...",
+    "selection": "..."
+  }
+}
+
+→ 200 { "reply": "..." }
+→ non-2xx { "error": "..." }</pre>
+<p>The server is responsible for: holding the Gemini key, prepending the system prompt, and (for voice) accepting <code>messages[*].audio = { base64, mimeType }</code> and forwarding it as Gemini <code>inlineData</code>. The exact same payload shape works for OpenAI Whisper if you swap providers later.</p>
+
+<h3>Voice input</h3>
+<div class="decision">
+  Native: records via <code>expo-av</code> with <code>HIGH_QUALITY</code> preset, reads the resulting file as base64, attaches it to the next user message as <code>audio = { base64, mimeType }</code>. Gemini's <code>inlineData</code> path accepts audio directly and does transcription + answer in one round-trip — no separate STT call. This matches your "use the configured AI provider's STT" answer.
+</div>
+<div class="tradeoff">
+  <strong>Web:</strong> not implemented (per §12.4 of <code>technical_docs.md</code>, the existing dictation mic was already a UI-only sim on web). The button shows an inline error on web; users can still type.
+  <br /><br />
+  <strong>Mic permissions:</strong> already declared in <code>app.json</code> for iOS (<code>NSMicrophoneUsageDescription</code>) and Android (<code>RECORD_AUDIO</code>). No <code>app.json</code> changes needed.
+</div>
+
+<h3>Context window</h3>
+<div class="decision">
+  <code>buildTranscriptWindow(lines, currentSeconds, halfWindow=15)</code> picks every transcript line that overlaps <code>[t-15, t+15]</code>. If nothing matches (e.g. before playback starts) it falls back to the first 5 lines. The Listen screen passes this window plus video title/channel into navigation params when opening AI Tutor.
+</div>
+
+<h3>Settings UX</h3>
+<ul>
+  <li>Two-segment toggle: <em>Backend proxy</em> vs <em>Direct (Gemini)</em>.</li>
+  <li>Model picker shows the current Gemini lineup (<code>gemini-3.5-flash</code>, <code>gemini-2.5-pro</code>, <code>gemini-3.1-pro</code>, <code>gemini-3-flash-preview</code>, <code>gemini-3.1-flash-lite</code>).</li>
+  <li>Key field is masked by default with a show/hide eye; persists on blur.</li>
+  <li>"Test connection" button sends a single <code>"Say 'ok' if you can read this."</code> message and shows the response or error inline.</li>
+</ul>
+
+<h3>Routing</h3>
+<ul>
+  <li>Two new <code>Stack.Screen</code> entries in <code>app/_layout.tsx</code>: <code>ai-tutor</code> (modal, slide-from-bottom) and <code>ai-settings</code> (slide-from-right).</li>
+  <li><code>router.push</code> calls cast the new pathnames as <code>any</code> in two places. Reason: Expo Router auto-generates typed routes at <code>.expo/types/router.d.ts</code> only when the dev server runs; <code>tsc --noEmit</code> on a fresh checkout doesn't see the new routes yet. Restarting <code>expo start</code> regenerates the types — at that point the casts can be removed.</li>
+</ul>
+
+<h2>Item 7 — Home screen Netflix-style Video Slider</h2>
+<p><em>Spec:</em> "bring videos in the library screen into home screen replace for recent video / session sections… change to Netflix style with a slider of 10 videos in a row then next row."</p>
+
+<h3>Decisions</h3>
+<div class="decision">
+  Replaced the flat list layout on <code>app/(tabs)/home.tsx</code> with horizontal Netflix-style card sliders chunked using <code>chunkArray(videos, 10)</code>.
+  Each video row consists of a title and a horizontal scrolling <code>ScrollView</code> populated by card items. To create a seamless bleed effect, cards extend edge-to-edge of the device by using <code>marginHorizontal: -Spacing.screen</code> on the container combined with matching padding.
+  Each card enforces a fixed width of <code>240px</code> and a strict <code>aspectRatio: 16/9</code> for the video thumbnail, overlaid by the video title, channel name, and actions.
+</div>
+
+<h3>Data Grid Chunking & UI flow</h3>
+<ul>
+  <li>Videos are client-side chunked into nested matrices: <code>chunks = chunkArray(videos, 10)</code>. Each chunk renders as a distinct slider section (e.g., "Library Videos (1-10)", "Library Videos (11-20)").</li>
+  <li>If the user has zero saved videos, the screen falls back to displaying the native empty dashboard view with hints.</li>
+</ul>
+
+<h3>Data fetch</h3>
+<ul>
+  <li>Home now fans out two requests in parallel on focus: <code>homeService.fetch()</code> (kept for the streak chip) and <code>videoService.list()</code> (the video set). Either can fail independently — a list failure leaves the streak chip working, and vice versa.</li>
+  <li>Removed the <code>recentKnots</code> mapping and the <code>Knot</code> import. The mastery-percent column and per-segment metadata are no longer surfaced on Home; Library has always lacked them too, so behaviour is now consistent across both tabs.</li>
+</ul>
+
+<h3>Tradeoffs</h3>
+<div class="tradeoff">
+  Mastery is no longer visible from Home. If we want to bring it back without breaking the new card layout, the cleanest path is a small mastery pill on the right-hand side of each card (matches the existing badge styling). Not in this delivery.
+</div>
+
+<h3>Follow-up decisions — delete + copy actions</h3>
+<div class="decision">
+  Home video rows now expose two inline icon actions: <strong>copy URL</strong> and <strong>delete</strong>. Copy uses <code>expo-clipboard</code> and shows a small fading bottom toast instead of a blocking <code>Alert.alert</code>. Delete remains destructive-confirmed, calls <code>videoService.remove(id)</code>, and performs an optimistic UI removal.
+</div>
+<ul>
+  <li><code>videoService.remove(id)</code> calls <code>DELETE /videos/:id</code>, so deletion is DB-backed rather than local-only.</li>
+  <li>The backend route checks ownership by <code>user_id</code>, deletes related <code>practice_sessions</code> first, then deletes <code>user_videos</code>.</li>
+  <li>A <code>404</code> / not-found delete response is treated as already removed from the DB, so the row stays removed instead of rolling back. Other failures restore the previous list and show an error alert.</li>
+  <li>Home video data is fetched from the API on focus and is not persisted in app local storage. The local persisted stores are auth/session, AI settings, preprocessed transcripts, and saved phrases.</li>
+</ul>
+
+<h2>Item 8 — Bookmarks per transcript line + Library Phrase/Vocabulary tabs</h2>
+<p><em>Spec:</em> "add bookmark icon under timestamp along the transcript for each sentence. when user touch on bookmark, save this sentence into library screen. In library screen, there are two vertical tabs : Phrase and Vocabulary… clean up all videos listing in the Library screen."</p>
+
+<h3>Decisions</h3>
+<div class="decision">
+  New persistent store at <code>src/stores/savedPhrasesStore.ts</code> (Zustand + AsyncStorage, mirrors the <code>aiSettingsStore</code> shape). Each saved entry is <code>{ id, text, kind: 'phrase' | 'vocabulary', source?: 'video' | 'ai', videoId, videoTitle, videoChannel, start, createdAt }</code>, persisted under <code>soundknot_saved_phrases</code>. Lookups use a composite key of <code>videoId@startMs</code> so toggling on the transcript is O(n) but stable across re-renders.
+</div>
+<ul>
+  <li><strong>Listen screen:</strong> the timestamp column became a small "gutter" — timestamp on top, bookmark <code>TouchableOpacity</code> directly under it. Tapping the bookmark calls <code>addPhrase</code> / <code>removeByLine</code> and toggles between <code>bookmark-outline</code> and the filled <code>bookmark</code> Ionicon (accent orange when saved). The inner Touchable swallows the press, so the row's <code>onPress={() =&gt; seekTo(line.start)}</code> still fires for the rest of the row.</li>
+  <li><strong>Default kind = <code>phrase</code>.</strong> Transcript bookmarks save as phrases. AI Tutor generated keyword lists save as vocabulary; generated grammar/phrase lists save as phrases.</li>
+</ul>
+
+<h3>Library rewrite</h3>
+<div class="decision">
+  Old <code>app/(tabs)/library.tsx</code> (saved videos list + search) replaced wholesale. New screen has a two-segment pill tab bar (<strong>Phrases</strong> / <strong>Vocabulary</strong>) with per-tab counts, search, time filters (<strong>All</strong>, <strong>Yesterday</strong>, <strong>Last 7 days</strong>), and compact cards for saved entries. Cards show source badges, parsed title/explanation/example lines, source metadata, and inline actions. Tapping any card opens a detail bottom sheet with full content and contextual actions.
+</div>
+<ul>
+  <li>AI Tutor generated saves are marked <code>source: 'ai'</code>. Library treats them as <strong>AI-curated</strong>, disables video navigation, and hides the <strong>Open video</strong> action. Older AI saves from before the source field are detected by their large synthetic <code>start</code> value.</li>
+  <li>Transcript-saved items stay source-linked. Their cards and detail sheet can open <code>/listen</code> at the saved timestamp.</li>
+  <li>Generated AI list items are parsed by the <code>"title - explanation Transcript/Example: ..."</code> pattern. The title renders bold, explanation renders on the next line, and example/transcript renders on its own italic line.</li>
+  <li>The previous <strong>Move to Phrase/Vocabulary</strong> action was removed from both cards and the detail menu to reduce cognitive load.</li>
+  <li>Copy/delete feedback uses a small fading bottom toast, not a blocking confirmation alert. Delete remains available from cards and detail sheet.</li>
+</ul>
+
+<h3>Tradeoffs</h3>
+<div class="tradeoff">
+  <strong>Saved videos are no longer reachable from Library.</strong> Per the spec ("clean up all videos listing in the Library screen"), the video list and search field are gone. Home already shows the full video set (Item 7), so this is intentional — but if the app grows past the Home list capacity, we'll want a separate "Videos" tab rather than reintroducing the list here.
+</div>
+<div class="tradeoff">
+  <strong>No automatic lemmatisation for vocabulary.</strong> The Vocabulary tab stores whole sentences just like Phrase — kind is just a tag. If you want true single-word vocab, the cleanest follow-up is a "trim selection" sheet on the Library row that lets the user pick a span before promoting to Vocabulary.
+</div>
+
+<h3>Files touched</h3>
+<table>
+  <tr><th>File</th><th>Change</th></tr>
+  <tr><td><code>src/stores/savedPhrasesStore.ts</code></td><td>Persisted store with add / remove / removeByLine / setKind / hasPhrase / findByLine; entries now support <code>source?: 'video' | 'ai'</code></td></tr>
+  <tr><td><code>app/listen.tsx</code></td><td>Bookmark column under timestamp; loads store on mount; per-line toggle</td></tr>
+  <tr><td><code>app/(tabs)/library.tsx</code></td><td>Phrase/Vocabulary tabs, search, time filters, parsed cards, detail sheet, copy/delete/open actions</td></tr>
+  <tr><td><code>app/ai-tutor.tsx</code></td><td>Generated keyword/phrase cards save to the same store with <code>source: 'ai'</code> and the correct kind</td></tr>
+  <tr><td><code>app/(tabs)/home.tsx</code></td><td>Video copy URL action, DB-backed delete action, 404-as-already-deleted handling</td></tr>
+  <tr><td><code>api/src/routes/videos.ts</code></td><td><code>DELETE /videos/:id</code> route with ownership check and session cleanup</td></tr>
+</table>
+
+<h2>Item 10 — Transcript split stabilization</h2>
+<p><em>Problem:</em> the current splitter in <code>src/services/transcript.ts</code> treats a detected sentence as atomic — it never splits inside a sentence even when the "sentence" is hundreds of words long. YouTube auto-captions frequently produce sparse punctuation, so the algorithm emits monster chunks. The test runner confirms this:</p>
+<pre>cd app && npm run test:transcript -- --url https://www.youtube.com/watch?v=RzcD5jQgZeI
+
+→ Chunk #4: 279 words, 1 sentence  (target 30–40)
+→ Chunk #10: 166 words, 1 sentence</pre>
+<p>Goal: every chunk lands in the 20–45 word range without giving up the sentence-boundary protection that keeps clean transcripts clean.</p>
+
+<h3>Decision — Hybrid local + synchronous AI fallback</h3>
+<div class="decision">
+  Two-stage pipeline inside <code>src/services/transcript.ts</code>. Stage 1 is deterministic soft-boundary splitting (no network). Stage 2 is a synchronous AI call <strong>only for chunks that remain oversized</strong>, routed through the existing provider-agnostic <code>Config.aiEndpoint</code> so the app stays decoupled from any specific LLM vendor — the backend picks the provider.
+</div>
+
+<h3>Stage 1 — Local soft-boundary splitting</h3>
+<ul>
+  <li>Add <code>splitLongSentence(sentence, times)</code>. When a detected sentence exceeds <code>MAX_WORDS_PER_CHUNK</code> (40), split it on soft boundaries in this priority order:
+    <ol>
+      <li><code>;</code> and <code>:</code></li>
+      <li><code>,</code> followed by whitespace</li>
+      <li>Coordinating conjunctions at word boundary: <code>and</code>, <code>but</code>, <code>so</code>, <code>because</code>, <code>or</code>, <code>yet</code>, <code>nor</code></li>
+      <li>Common spoken fillers: <code>you know</code>, <code>I mean</code>, <code>like</code>, <code>right</code>, <code>well</code></li>
+    </ol>
+  </li>
+  <li>Apply greedily but only when the left piece is at least <code>MIN_WORDS_PER_CHUNK</code> (30). If no soft boundary yields a valid split, fall back to a hard word-count cut at <code>UNPUNCTUATED_WORDS_PER_CHUNK</code> (45) — delegate to <code>mergeByWordCount</code> rather than duplicating the cut logic.</li>
+  <li>Timestamps survive by reusing the existing <code>buildTimedText</code> / <code>lineFromSpan</code> machinery (transcript.ts:102, 150). Soft splits produce sub-spans of the same <code>times[]</code> array, so each new chunk gets accurate <code>start</code> / <code>duration</code> without recalculation.</li>
+  <li><code>splitIntoSentenceUnits</code> invokes <code>splitLongSentence</code> on every detected sentence that exceeds <code>MAX_WORDS_PER_CHUNK</code> before returning to <code>packTranscriptLines</code>. <code>packTranscriptLines</code> itself is unchanged.</li>
+</ul>
+
+<h3>Stage 2 — AI fallback for residuals</h3>
+<ul>
+  <li>After <code>splitTranscriptLocally</code> runs, scan the chunk list. A chunk is sent to AI if it is <strong>both</strong> <code>&gt; AI_FALLBACK_WORD_CEILING</code> (proposed: 60) <strong>and</strong> contains <code>≤ 1</code> sentence boundary.</li>
+  <li>Synchronous during <code>fetchTranscript</code> — the transcript load awaits the AI call. Acceptable because (a) only the residual chunks are sent, not the whole transcript, (b) most videos won't trigger it at all, (c) it keeps the data flow simple.</li>
+  <li>Request payload (per chunk):
+    <pre>POST {Config.aiEndpoint}/v1/resegment
+{
+  "text": "&lt;chunk text&gt;",
+  "targetMinWords": 20,
+  "targetMaxWords": 45
+}</pre>
+  </li>
+  <li>Expected response:
+    <pre>{ "splits": [
+  { "text": "...", "wordOffset": 0 },
+  { "text": "...", "wordOffset": 23 }
+] }</pre>
+  </li>
+  <li><strong>AI text is never trusted for word content</strong> — only <code>wordOffset</code> is consumed. The client re-maps each <code>wordOffset</code> to a character index in the original chunk text, then uses the existing <code>times[]</code> slice to assign timestamps. This makes the fallback robust against hallucination.</li>
+  <li>Per-video in-process cache keyed by <code>videoId</code> avoids re-calling within the same session. Persistent caching is out of scope.</li>
+</ul>
+
+<h3>Failure handling</h3>
+<div class="tradeoff">
+  AI failure must never break transcript loading. If the endpoint is unreachable, returns a non-2xx, returns an invalid shape, or any <code>wordOffset</code> fails range validation against the original chunk, the Stage 1 chunk is preserved as-is and a <code>console.warn</code> is logged. The user sees the locally-split result, which is already much better than today.
+</div>
+
+<h3>Files to modify</h3>
+<table>
+  <tr><th>File</th><th>Change</th></tr>
+  <tr><td><code>src/services/transcript.ts</code></td><td>Add <code>splitLongSentence</code> helper; modify <code>splitIntoSentenceUnits</code> to invoke it on oversized sentences; add <code>applyAiFallback(chunks, videoId)</code>; extend <code>fetchTranscript</code> to await <code>applyAiFallback</code> after <code>splitTranscriptLocally</code>; add <code>AI_FALLBACK_WORD_CEILING = 60</code></td></tr>
+  <tr><td><code>src/services/ai.ts</code></td><td>Add <code>resegmentChunk(text, opts)</code> that POSTs to <code>${Config.aiEndpoint}/v1/resegment</code> and returns <code>{ splits: { text, wordOffset }[] }</code>. Reuse the existing fetch pattern (ai.ts:18–30)</td></tr>
+  <tr><td><code>test/scripts/transcript-split-review.ts</code></td><td>Add <code>--with-ai</code> flag that runs the full <code>fetchTranscript</code> pipeline (not just <code>packTranscriptLines</code>) so the AI fallback can be exercised end-to-end against a YouTube source</td></tr>
+</table>
+
+<h3>Reused existing functions</h3>
+<ul>
+  <li><code>buildTimedText</code>, <code>lineFromSpan</code> (transcript.ts:102, 150) — timestamp-preserving sub-spans for <code>splitLongSentence</code>.</li>
+  <li><code>countSentenceEndings</code>, <code>sentenceBoundaryEnd</code> (transcript.ts:42, 130) — unchanged, still gate top-level sentence detection.</li>
+  <li><code>mergeByWordCount</code> (transcript.ts:55) — last-resort branch of <code>splitLongSentence</code> delegates here rather than re-implementing word-count cuts.</li>
+  <li><code>aiService</code> fetch pattern (ai.ts:18–30) — <code>resegmentChunk</code> follows the shape of <code>askQuestion</code> / <code>explainPhrase</code>.</li>
+</ul>
+
+<h3>New constants</h3>
+<table>
+  <tr><th>Constant</th><th>Value</th><th>Meaning</th></tr>
+  <tr><td><code>AI_FALLBACK_WORD_CEILING</code></td><td>60</td><td>Chunks above this word count, with <code>≤ 1</code> sentence boundary, are sent to AI for re-segmentation.</td></tr>
+</table>
+
+<h3>Verification</h3>
+<ol>
+  <li><strong>Stage 1 only</strong> — <code>cd app && npm run test:transcript -- --url https://www.youtube.com/watch?v=RzcD5jQgZeI</code>. Expect: no chunk over 60 words; chunks #4 and #10 from the current output break into 3–5 pieces in the 20–45 word range with sensible boundary text (clause starts like "And…", "Because…", "You know…"). Total chunk count rises from 11 to ~18–22.</li>
+  <li><strong>Stage 2 happy path</strong> — point <code>EXPO_PUBLIC_AI_ENDPOINT</code> at a local mock returning a canned <code>splits</code> payload, run with <code>--with-ai</code>. Confirm: only chunks above the ceiling are POSTed; returned splits are accepted; timestamps remain monotonically increasing and within the original chunk's time range.</li>
+  <li><strong>Stage 2 failure path</strong> — set <code>EXPO_PUBLIC_AI_ENDPOINT</code> to an unreachable host and re-run with <code>--with-ai</code>. Expect: script completes, <code>console.warn</code> per failed chunk, output equals the Stage 1 result, no crashes.</li>
+  <li><strong>Regression on clean source</strong> — run against a TED talk or a well-punctuated podcast. Expect: chunk boundaries unchanged from today (Stage 1 never triggers, Stage 2 never triggers).</li>
+  <li><code>npx tsc --noEmit</code> clean after edits.</li>
+</ol>
+
+<h3>Backend contract</h3>
+<p>The endpoint expected by the app — the backend team picks the underlying provider (Gemini, Claude, OpenAI, etc.) and prompt:</p>
+<pre>POST {apiBaseUrl-or-aiEndpoint}/v1/resegment
+Content-Type: application/json
+
+{
+  "text": "<one oversized transcript chunk>",
+  "targetMinWords": 20,
+  "targetMaxWords": 45
+}
+
+→ 200 {
+  "splits": [
+    { "text": "<sub-chunk 1 text>", "wordOffset": 0 },
+    { "text": "<sub-chunk 2 text>", "wordOffset": 23 },
+    ...
+  ]
+}
+→ non-2xx { "error": "..." }</pre>
+<p><code>wordOffset</code> is the zero-based word index in the original <code>text</code> where each sub-chunk starts. The first sub-chunk must have <code>wordOffset: 0</code>. Sub-chunks should each fall in the target word range; the client is responsible for tolerating mild violations.</p>
+
+<h2>Item 11 — Session restoration + Sign out + Home delete deploy fix</h2>
+<p><em>Problem:</em> two adjacent bugs surfaced while debugging "delete video" on Home.</p>
+<ol>
+  <li><strong>Delete returned 404 in production.</strong> The local Worker code had <code>DELETE /videos/:id</code> but the deployed Worker at <code>soundknot-api.ndkhoa-is.workers.dev</code> did not. The client's "treat 404 as already removed" branch swallowed the failure silently — the row vanished optimistically and reappeared on next Home focus.</li>
+  <li><strong>Home occasionally rendered an empty video list.</strong> Reproduced after Metro Fast Refresh / Reload while sitting on Home. Logs showed <code>GET /videos → "Missing or invalid Authorization header"</code> immediately after a successful DELETE. The bearer token had vanished from the <code>apiClient</code> singleton mid-session.</li>
+</ol>
+
+<h3>Root cause — singleton token desync</h3>
+<div class="decision">
+  <code>apiClient</code> in <code>src/services/api.ts</code> holds the bearer token in a private field that lives in JS memory only. The token was set in exactly four call sites (login / register / logout / <code>restoreSession</code>) inside <code>authStore</code>. <code>restoreSession</code> only ran inside <code>app/index.tsx</code>'s <code>useEffect</code> — and <code>index.tsx</code> only mounts when the user lands on the <code>/</code> route. Any code path that bypassed <code>/</code> (Fast Refresh while on <code>/(tabs)/home</code>, an OS-evicted JS VM rehydrating directly into a deep route) left <code>apiClient.token = null</code> while AsyncStorage still held a valid session. Every protected request then 401'd with the auth-middleware message.
+</div>
+
+<h3>Fixes shipped</h3>
+<table>
+  <tr><th>File</th><th>Change</th></tr>
+  <tr><td><code>app/_layout.tsx</code></td><td>Calls <code>useAuthStore.restoreSession()</code> in a <code>useEffect</code> at app boot and gates the entire stack render on <code>authChecked</code>. No child route can mount before the persisted token is re-attached to <code>apiClient</code>.</td></tr>
+  <tr><td><code>src/stores/authStore.ts</code></td><td>Added a module-level <code>useAuthStore.subscribe(...)</code> that mirrors <code>session?.access_token</code> into <code>apiClient.setToken/clearToken</code> on every change. The store is now the single source of truth; the singleton can't drift again even if a future code path forgets to call <code>setToken</code>.</td></tr>
+  <tr><td><code>app/index.tsx</code></td><td>Stripped to a single <code>&lt;Redirect&gt;</code>. Auth restoration now belongs to the root layout, so this route doesn't repeat the work or duplicate the splash UI.</td></tr>
+  <tr><td><code>app/(tabs)/progress.tsx</code></td><td>Added an <strong>Account</strong> section at the bottom of the Profile tab showing the user's email and a destructive-confirmed <strong>Sign out</strong> pill button. Calls <code>useAuthStore.logout()</code> then <code>router.replace('/login')</code>.</td></tr>
+  <tr><td>Deployed Worker</td><td>Ran <code>npx wrangler deploy</code> from the <code>api/</code> repo so the <code>DELETE /videos/:id</code> handler is live. The route itself was unchanged.</td></tr>
+</table>
+
+<h3>Tradeoffs / known limits</h3>
+<div class="tradeoff">
+  <strong>No token refresh.</strong> Supabase access tokens expire after ~1 hour. The fix above guarantees the saved token is always attached, but it does not refresh an expired token mid-session. Long-running app sessions can still 401 once the token expires. The proper follow-up is to detect <code>response.status === 401</code> in <code>api.ts</code>, attempt one <code>refresh_token</code> exchange via the existing Supabase session, retry the request once, and only then bubble the error.
+</div>
+<div class="tradeoff">
+  <strong>Home still hides backend errors as an empty list.</strong> <code>useFocusEffect</code> in <code>home.tsx</code> swallows both <code>homeService.fetch</code> and <code>videoService.list</code> failures with <code>.catch(() =&gt; null / { videos: [] })</code>. A 401/5xx looks identical to "you have 0 videos". Worth a small follow-up: render an explicit "Could not load — tap to retry" state instead.
+</div>
+<div class="tradeoff">
+  <strong>Delete-error swallowing on 404 stays in place.</strong> The Worker is now deployed so this branch should not fire in practice, but if the API ever drifts again the user will see no warning. Acceptable for now; revisit if we add more destructive actions.
+</div>
+
+<h3>How to verify</h3>
+<ol>
+  <li>Cold start → Home loads videos.</li>
+  <li>Press <code>r</code> in Metro to reload while on Home → videos still load (this was broken before).</li>
+  <li>Trigger Fast Refresh by editing any file → videos still load after the reload.</li>
+  <li>Profile tab → bottom → tap <strong>Sign out</strong> → confirm → land on <code>/login</code>.</li>
+  <li>Sign in again → Home loads videos (regression check on the new subscriber).</li>
+  <li>Tap delete on any video row → row disappears and stays gone after navigating away and back.</li>
+  <li><code>npx tsc --noEmit</code> clean.</li>
+</ol>
+
+<h2>Item 12 — Model Playground</h2>
+<p><em>Spec:</em> "Fan out one prompt across selected Gemini or OpenRouter models. Compare replies, latency, token usage, and estimated cost."</p>
+
+<h3>Decisions</h3>
+<div class="decision">
+  Introduced a dedicated developer-facing web model playground at <code>app/playground.tsx</code>. It supports direct call fans to selected models of the active provider (Gemini or OpenRouter), tracking latency, token usage, and computing live estimated cost based on model input/output rates.
+</div>
+<ul>
+  <li>Allows choosing provider (Gemini / OpenRouter) and model settings.</li>
+  <li>Displays side-by-side comparative Result cards showing status, structured reply text, latency in ms, token usage (prompt and completion tokens), and computed cost in USD.</li>
+  <li>Includes predefined/custom prompt templates and custom parameter control sliders (temperature, max tokens, topP).</li>
+</ul>
+
+<h2>Item 13 — AI Tutor Prompt Refactoring & Parity with Playground</h2>
+<p><em>Problem:</em> The mobile app returned highly compressed, unformatted bullet points or flat text blocks from <code>gemini-3.1-flash-lite</code>, while the developer playground yielded beautifully structured Markdown analyses with headings, subheadings, and bold vocabulary lists using the same model.</p>
+
+<h3>Root cause</h3>
+<div class="tradeoff">
+  The standard tutor <code>PREAMBLE</code> prompt imposed rigid answer shape templates (e.g. limiting summary responses to single-level unformatted bullet lists with "clean bullets", restricting explanation to exactly 2-4 short paragraphs, and dictating strict length limitations). The playground, operating under a minimal system prompt, allowed the model's natural rich-formatting instructions to flourish.
+</div>
+
+<h3>Fixes</h3>
+<div class="decision">
+  Refactored the system <code>PREAMBLE</code> in both the app client <code>app/src/services/aiTutor.ts</code> and the server proxy <code>api/src/lib/aiSystemPrompt.ts</code> to encourage structured, detailed, and high-quality educational Markdown formatting:
+</div>
+<ul>
+  <li>Replaced rigid shape guidelines with explicit instructions for rich formatting: descriptive headings (### H3), sub-headings, paragraph explanations, and styled bullets for summaries.</li>
+  <li>Instructed the model to use bolding and structure (definitions, concrete usage examples, listening/pronunciation tips) instead of flat paragraphs for vocabulary explanations.</li>
+  <li>Retained vital system rules (the literal <code>[t=MM:SS]</code> timestamp seeker token format, user language mirroring, and priority of explicit user format instructions).</li>
+  <li>Deployed the Hono worker changes via <code>wrangler deploy</code> to <code>soundknot-api.ndkhoa-is.workers.dev</code> so both proxy-mode and direct-mode calls achieve identical high-quality formatted replies.</li>
+</ul>
+
+<h2>Item 14 — Dynamic URL Input "Clear" Chip</h2>
+<p><em>Spec:</em> "Add clear link next to button 'Or Use Clipboard'"</p>
+
+<h3>Decisions</h3>
+<div class="decision">
+  Implemented a conditional "Clear" chip inside the input hints area of <code>app/(tabs)/home.tsx</code>. When the text inside the URL input (<code>urlValue</code>) has a length greater than zero, the chip appears next to the other helper chips ("Paste link", "Or use clipboard"). Tapping this chip clears the input field immediately by executing <code>setUrlValue('')</code>.
+</div>
+
+<h2>Item 15 — Keyboard Tap Persistence Configuration</h2>
+<p><em>Problem:</em> When the input URL text bar was focused, pressing the execution/submission button required a double-tap (the first tap dismissed the keyboard, and only the second tap actually registered on the button).</p>
+
+<h3>Decisions</h3>
+<div class="decision">
+  Added <code>keyboardShouldPersistTaps="handled"</code> to the outermost <code>ScrollView</code> wrapper inside <code>app/(tabs)/home.tsx</code>. This ensures that any press event on interactive buttons (like the URL submit button or chips) is intercepted and handled immediately without the keyboard swallow-dismissing the first touch gesture.
+</div>
+
+<h2>Item 16 — Spotify-style dark theme redesign</h2>
+<p><em>Spec:</em> "I love Spotify design. can you copy all 12 Spotify-style cover design and apply into this app". Iterated through many follow-ups: switch app to dark mode, remove old Netflix cards, redesign Home and Library with reusable cover components, add a featured "Today's Pick" card, and add a "Trending Videos" portrait slider.</p>
+
+<h3>Decisions</h3>
+<div class="decision">
+  Replaced the warm-paper light theme with a Spotify-inspired dark theme. Built four new presentation components under <code>src/components/spotify/</code> that render real <code>UserVideo</code> data (no static mock playlists). Home and Library are now thin orchestrators that pick which video components to show.
+</div>
+
+<h3>Theme switch — Spotify dark palette</h3>
+<ul>
+  <li><code>src/constants/theme.ts</code> — <code>useTheme()</code> now returns <code>DarkColors</code>; <code>useIsDark()</code> returns <code>true</code>. The light-only lock from §4.1 of <code>technical-docs.html</code> is gone.</li>
+  <li><code>src/constants/Colors.ts</code> — <code>DarkColors</code> rewritten to true Spotify values: <code>paper #121212</code>, <code>paper2 #1A1A1A</code>, <code>ink #FFFFFF</code>, <code>accent #1DB954</code> (Spotify green), <code>positive #1DB954</code>, white-on-transparent hairlines.</li>
+  <li><code>ColorTokens</code> type widened from <code>typeof LightColors</code> (literal-typed) to a <code>string</code>-based interface so both palettes satisfy the contract. This unlocks future dark/light toggling without further type churn.</li>
+</ul>
+
+<h3>New components (all under <code>src/components/spotify/</code>)</h3>
+<table>
+  <tr><th>Component</th><th>Purpose</th><th>Used in</th></tr>
+  <tr><td><code>HighlightCover.tsx</code></td><td>"Today's Pick" featured card. Full-width 16:9 hero with image, dark overlay, Spotify-green floating play button in the bottom-right, YouTube logo + bold title underneath.</td><td>Home only</td></tr>
+  <tr><td><code>SpotifyCover.tsx</code></td><td>Stateless image-only thumbnail primitive. Takes <code>imageUrl</code>, <code>size</code>, optional <code>aspectRatio</code>. Used by the sliders. No text or branding inside the image — keeps the thumbnail clean.</td><td>Slider building block</td></tr>
+  <tr><td><code>SpotifyCoverSlider.tsx</code></td><td>Horizontal scrollable row of square cover cards (160px). Each card shows the cover image, then below: small red YouTube logo + bold title + bold channel name. Edge-to-edge bleed via <code>marginHorizontal: -Spacing.screen</code>.</td><td>Home — "Recent Videos"</td></tr>
+  <tr><td><code>RankedSlider.tsx</code></td><td>Horizontal scrollable row of portrait (150×200) cards with rounded corners. Title underneath. Originally drew a numbered badge (Spotify "Top Charts" style); the badge was removed on user request and the component now reads as a tall-poster row.</td><td>Home — "Trending Videos"</td></tr>
+  <tr><td><code>SpotifyCoverList.tsx</code></td><td>Vertical numbered list with small 48×48 square thumbnails. Row shows index, thumb, YouTube logo + bold title, channel name, and a copy-link icon button on the right.</td><td>Library only</td></tr>
+</table>
+
+<h3>Screen composition after redesign</h3>
+<table>
+  <tr><th>Screen</th><th>Order</th><th>Components</th></tr>
+  <tr><td>Home (<code>app/(tabs)/home.tsx</code>)</td><td>Hero text → URL input + hint chips → SpotifyCoverSlider ("Recent Videos") → HighlightCover ("Today's Pick") → RankedSlider ("Trending Videos")</td><td>Slider + Highlight + Ranked</td></tr>
+  <tr><td>Library (<code>app/(tabs)/library.tsx</code>)</td><td>Header → Krashen quote → SpotifyCoverList ("All Videos")</td><td>List only</td></tr>
+</table>
+
+<h3>HighlightCover — "Today's Pick" featured video</h3>
+<div class="decision">
+  Always shows a hardcoded <code>FEATURED_VIDEO</code> constant — not the first user video. The featured pick is curated, not auto-derived from the library, so it stays consistent across users. Current pick: "How to Improve Your Communication Skills | Matt Abrahams &amp; Dr. Andrew Huberman" (<code>C6ioLFXAMVE</code>) by Huberman Lab Clips. Channel + title fetched via the YouTube oEmbed endpoint (<code>https://www.youtube.com/oembed?url=...&amp;format=json</code>) to avoid manual transcription errors.
+</div>
+<ul>
+  <li>Tapping the card calls <code>router.push({ pathname: '/listen', params: { videoId } })</code> — no <code>userVideoId</code>, because the featured video isn't in the user's library. <code>Listen</code> already handles missing <code>userVideoId</code> (no session-attach).</li>
+  <li>Label "Today's Pick" uses <code>Typography.heading</code> + <code>fontWeight: 700</code>, identical to slider section titles, so all three row labels read at the same hierarchy.</li>
+  <li>Title styled as <code>bodyMedium</code> (not <code>heading</code>) so it doesn't visually dwarf the small YouTube icon. Channel name intentionally removed from the highlight card to keep the visual hierarchy clean.</li>
+</ul>
+
+<h3>SpotifyCoverList — Library row design</h3>
+<ul>
+  <li>Each row is tap-to-open (navigates to <code>/listen</code>). The right-side <strong>link-outline</strong> icon button has its own <code>onPress</code> that calls <code>Clipboard.setStringAsync(\`https://www.youtube.com/watch?v=${id}\`)</code> and uses <code>stopPropagation()</code> to avoid triggering the row tap.</li>
+  <li>No confirmation toast for copy — intentionally silent. The old Home screen toast/animation logic was removed entirely (saves ~40 lines of Animated boilerplate).</li>
+</ul>
+
+<h3>Hero text — "Bring in a <strong>sound</strong>. Work the <strong>knot</strong>."</h3>
+<div class="decision">
+  The two-line hero uses an inline <code>&lt;Text&gt;</code> with bolded inline children for <em>sound</em> and <em>knot</em>: the surrounding "Bring in a" / "Work the" stays at weight 400, the noun jumps to weight 800. Achieved with React Native's inline Text composition — no separate components or layout primitives.
+</div>
+<ul>
+  <li>Top margin tuned to <code>-13px</code> after several pixel-level adjustments. Negative margin compensates for the visual whitespace baked into the <code>SafeAreaView</code> + Inter line-height stack.</li>
+  <li>The "Sound Knot · Practice" marker label and streak chip above the hero were removed to save vertical real estate. The streak data is still loaded from <code>homeService.fetch()</code> but no longer rendered.</li>
+</ul>
+
+<h3>Library cleanup — what got deleted</h3>
+<div class="tradeoff">
+  <strong>Saved phrases &amp; vocabulary UI fully removed from Library.</strong> The Phrases/Vocabulary tabs, search box, time filters, parsed cards, detail bottom sheet, action buttons, and toast are all gone — <code>library.tsx</code> shrank from ~665 lines to ~110. The underlying <code>savedPhrasesStore</code> and bookmark APIs are still in place; bookmarks added from Listen still persist, they just have no UI surface today. If the saved-knowledge UX is wanted again, the cleanest path is a new <code>(tabs)/saved.tsx</code> tab rather than reintroducing it under Library.
+</div>
+
+<h3>Krashen quote</h3>
+<p>Library shows a small left-bordered italic quote above the video list:</p>
+<pre>"Language is best taught when it is being used to transmit messages,
+ not when it is explicitly taught for conscious learning."
+                                          — Stephen D. Krashen</pre>
+<p>Originally also placed on Home, then moved to Library only. Renders with <code>Typography.bodySmall</code> italic + <code>Typography.monoSmall</code> attribution, with a 2px vertical accent bar to the left to mark it as a pull-quote.</p>
+
+<h3>Home screen — what got deleted</h3>
+<ul>
+  <li>The Netflix-style 240px-wide video cards from §10.7 of <code>technical-docs.html</code> are gone. The whole chunked-row layout, optimistic delete with confirm Alert, copy URL button, deleting overlay, and toast animation system are removed — ~150 lines of JSX + 80 lines of styles + 5 imports (<code>Image</code>, <code>Alert</code>, <code>Clipboard</code>, <code>Animated</code>, <code>useRef</code>, <code>useEffect</code>) all dropped.</li>
+  <li><code>videoService.remove()</code> still exists and the backend route is untouched. The delete UI moved into the Listen screen's overflow menu in a future change; for now it lives only in the API.</li>
+</ul>
+
+<h3>Featured video data flow</h3>
+<pre>// app/(tabs)/home.tsx
+const FEATURED_VIDEO: UserVideo = {
+  id: 'featured',
+  user_id: '',
+  youtube_video_id: 'C6ioLFXAMVE',
+  title: 'How to Improve Your Communication Skills | Matt Abrahams &amp; Dr. Andrew Huberman',
+  channel: 'Huberman Lab Clips',
+  thumbnail_url: 'https://i.ytimg.com/vi/C6ioLFXAMVE/maxresdefault.jpg',
+  added_at: '',
+};</pre>
+<p>The thumbnail URL uses <code>maxresdefault.jpg</code> (1280×720) rather than <code>hqdefault.jpg</code> (480×360) for sharper rendering at the hero card's full-width size. Both are public YouTube static assets — no API key required. If <code>maxresdefault</code> doesn't exist for a given video, YouTube returns a 404; the <code>HighlightCover</code> placeholder renders a music-notes icon as the fallback.</p>
+
+<h3>Tradeoffs</h3>
+<div class="tradeoff">
+  <strong>Aspect-ratio prop on <code>SpotifyCoverSlider</code> went unused.</strong> Briefly during iteration we used <code>aspectRatio={4/3}</code> for a second "More to Explore" landscape row and <code>aspectRatio={3/4}</code> for a "Video Picks" portrait row. Both rows were removed on user request. The prop is still on the component and still works — it's harmless and could power future variants without a rewrite.
+</div>
+<div class="tradeoff">
+  <strong><code>coverData.ts</code> (12 mock Spotify playlist themes) was created early then deleted</strong> when the components moved to real <code>UserVideo</code> data. The themed-cover-with-overlay design from the original Figma file (Old School Love, Late Night Drive, etc.) is not in the shipped app — we render the YouTube thumbnail as-is instead.
+</div>
+
+<h3>Files added / modified</h3>
+<table>
+  <tr><th>File</th><th>Change</th></tr>
+  <tr><td><code>src/components/spotify/HighlightCover.tsx</code></td><td>NEW — Today's Pick featured card</td></tr>
+  <tr><td><code>src/components/spotify/SpotifyCover.tsx</code></td><td>NEW — image-only thumbnail primitive</td></tr>
+  <tr><td><code>src/components/spotify/SpotifyCoverSlider.tsx</code></td><td>NEW — horizontal slider of square covers</td></tr>
+  <tr><td><code>src/components/spotify/RankedSlider.tsx</code></td><td>NEW — horizontal slider of portrait cards</td></tr>
+  <tr><td><code>src/components/spotify/SpotifyCoverList.tsx</code></td><td>NEW — vertical list w/ copy-link button</td></tr>
+  <tr><td><code>src/constants/Colors.ts</code></td><td>DarkColors rewritten to Spotify palette; <code>ColorTokens</code> widened to <code>string</code> interface</td></tr>
+  <tr><td><code>src/constants/theme.ts</code></td><td><code>useTheme()</code> returns <code>DarkColors</code>; <code>useIsDark()</code> returns <code>true</code></td></tr>
+  <tr><td><code>app/(tabs)/home.tsx</code></td><td>~260 line reduction. Replaced Netflix grid with Slider + Highlight + Ranked. Removed streak label, copied-toast system, delete flow, Alert/Clipboard/Image imports. Added <code>FEATURED_VIDEO</code> constant. Hero text uses inline bold for "sound" / "knot".</td></tr>
+  <tr><td><code>app/(tabs)/library.tsx</code></td><td>~555 line reduction. Replaced saved-phrases tabs with quote + SpotifyCoverList. Fetches videos via <code>videoService.list()</code> on focus.</td></tr>
+</table>
+
+<h3>Verification</h3>
+<ol>
+  <li><code>npx tsc --noEmit</code> clean.</li>
+  <li>Cold start with empty library → Home shows hero, URL input, "Today's Pick" featured card. No empty slider rows.</li>
+  <li>Add a video → Home shows "Recent Videos" + "Today's Pick" + "Trending Videos". Library shows "All Videos" list with the new row appearing at index 1.</li>
+  <li>Tap any "Recent Videos" cover → opens <code>/listen</code> with <code>videoId</code> + <code>userVideoId</code>.</li>
+  <li>Tap "Today's Pick" → opens <code>/listen</code> with <code>videoId=C6ioLFXAMVE</code> and no <code>userVideoId</code>.</li>
+  <li>Tap the link icon on a Library row → URL copied to clipboard; row does <strong>not</strong> navigate.</li>
+  <li>Tap anywhere else on a Library row → navigates to <code>/listen</code>.</li>
+</ol>
+
+<h2>Item 17 — Word-tap vocabulary + multi-word phrase composer (Listen)</h2>
+<p><em>Spec (product_20260528.md, Issue 5):</em> "allowing user to touch and select individual word, then it opens a contextual action strip or contextual menu (Add to Vocabulary List) or (Ask AI Tutor)." Iterated through several follow-ups to also support multi-word phrase selection, then to make the phrase composer feel typographically natural.</p>
+
+<h3>Decisions — single-word path</h3>
+<div class="decision">
+  Each transcript line body is rendered as one inline <code>&lt;Text&gt;</code> whose children are split into word and non-word tokens by a Unicode regex (<code>[\p{L}\p{N}']+|[^\p{L}\p{N}']+</code>). Word tokens are inline <code>&lt;Text onPress&gt;</code> children with <code>suppressHighlighting</code>; non-word tokens render as plain inline Text so kerning and spacing stay native. Tapping a word opens a bottom sheet with the actions <strong>Add to Vocabulary List</strong> and <strong>Ask AI Tutor</strong>. The old line-level long-press menu was removed.
+</div>
+
+<h3>Decisions — multi-word phrase composer</h3>
+<div class="tradeoff">
+  React Native's <code>&lt;Text&gt;</code> does not expose per-glyph hit testing across inline children, so true iOS-style "long-press + drag handles to extend selection" is not implementable in pure JS. An earlier attempt converted each word to a <code>Pressable</code> chip with <code>PanResponder</code> hit-testing per-word <code>onLayout</code> boxes — this broke text wrapping, broke auto-scroll measurements, and introduced visible gaps between words. Reverted.
+</div>
+<div class="decision">
+  Shipped: <strong>long-press a transcript line → opens a phrase composer modal</strong>. The sheet slides up from the bottom showing that line as a single continuous <code>&lt;Text&gt;</code> (natural typography, native spacing, no chip gaps) with each word as an inline <code>&lt;Text onPress&gt;</code> child. The user taps the first word, then taps the last word, and the composer fills the inclusive range. Tapping a word inside the existing range trims selection back to just that word.
+</div>
+
+<h3>Seamless highlight across multi-word selections</h3>
+<ul>
+  <li>Each selected word renders with <code>backgroundColor: colors.accentSoft</code>, <code>color: colors.accent</code>, <code>fontWeight: 700</code>.</li>
+  <li>For the <strong>whitespace/punctuation tokens between two selected words</strong>, the renderer looks at the surrounding word indices and applies the same background. This turns adjacent highlights into a continuous underline-style highlight rather than a row of pill-shaped chunks.</li>
+  <li>Sentence body uses <code>fontFamily: bodyLarge</code>, <code>fontSize: 18</code>, <code>lineHeight: 28</code> so the long sentence wraps cleanly in the bottom sheet without looking cramped.</li>
+</ul>
+
+<h3>Long-press routing</h3>
+<div class="decision">
+  The outer row's <code>TouchableOpacity.onLongPress</code> fires for long-presses on the gutter and on whitespace between words, but inline <code>&lt;Text onPress&gt;</code> children intercept touches on words themselves before the parent can detect the long-press. To make long-press reliable when the finger lands on a word, the same <code>onLongPress</code> handler is attached to each per-word inline <code>&lt;Text&gt;</code>. <code>delayLongPress</code> tuned to 300ms.
+</div>
+
+<h3>Selection routing — kind defaults</h3>
+<ul>
+  <li>Single-word selection → save as <code>kind: 'vocabulary'</code>.</li>
+  <li>Multi-word selection (contains a space) → save as <code>kind: 'phrase'</code>.</li>
+  <li>The action sheet labels adapt: "SELECTED WORD" / "Add to Vocabulary List" for single; "SELECTED PHRASE" / "Add to Phrase List" for multi-word.</li>
+</ul>
+
+<h3>AI vocabulary composer</h3>
+<div class="decision">
+  New service <code>src/services/vocabulary.ts</code> exposing <code>composeVocabulary(word, settings, context)</code>. Sends a tightly-formatted prompt that asks the model to return exactly 3 lines:
+  <pre>**word or phrase** /IPA/ (part of speech)
+short clear explanation in 1 sentence.
+Example: "a natural example sentence."</pre>
+  Reuses the existing <code>chat()</code> pipeline from <code>aiTutor.ts</code> so it inherits proxy/direct mode routing and provider abstraction. The result is saved verbatim to <code>savedPhrasesStore</code> with <code>source: 'ai'</code>.
+</div>
+
+<h3>UI affordances</h3>
+<ul>
+  <li>While the AI composes the entry, a <code>vocabToast</code> at the bottom shows an <code>ActivityIndicator</code> + "Composing vocabulary…". On success it flips to "Added \"&lt;word&gt;\" to Vocabulary" (or "to Phrases") for 2.4s then disappears.</li>
+  <li>Phrase composer footer has two pill buttons: <strong>Ask AI Tutor</strong> (ghost) routes the selected text into the tutor prefilled prompt; <strong>Add to List</strong> (primary green) runs <code>composeVocabulary</code> and saves.</li>
+</ul>
+
+<h3>Files touched</h3>
+<table>
+  <tr><th>File</th><th>Change</th></tr>
+  <tr><td><code>src/services/vocabulary.ts</code></td><td>NEW — single-word/phrase formatter that wraps <code>chat()</code> with a strict 3-line prompt</td></tr>
+  <tr><td><code>app/listen.tsx</code></td><td>Word-tap action sheet; long-press → phrase composer modal; <code>splitWordTokens</code> helper using Unicode regex; selectable inline word taps with seamless highlight via colored space tokens; <code>vocabToast</code> status; routes single vs multi to <code>vocabulary</code> vs <code>phrase</code> kind</td></tr>
+</table>
+
+<h3>Tradeoffs / known limits</h3>
+<div class="tradeoff">
+  <strong>Phrase selection cannot cross transcript lines.</strong> The composer scopes to a single <code>TranscriptLine</code> because the transcript is already sentence-packed (Item 1); cross-line selection would require a different mental model. If a phrase straddles a line boundary, the user must select from one line and rephrase the AI explanation later.
+</div>
+<div class="tradeoff">
+  <strong>No native drag handles.</strong> Without a native module (e.g. wrapping iOS <code>UITextView</code> + <code>UIEditMenuInteraction</code>), the iOS system "drag handles + Copy/Lookup/Translate menu" experience cannot be reproduced. The two-tap range model in a dedicated sheet is the chosen workaround. A future enhancement could ship a Swift module that exposes selected range + lets us inject custom menu items.
+</div>
+
+<h2>Item 18 — AI Tutor: Speak, Do-a-quiz, list/quiz layout fixes</h2>
+<p><em>Spec (product_20260528.md, Issues 6–8):</em> "speak out loud AI response", "Add 'Do a quiz' into initial prompts", "Bug layout UI - text overlapping btn copy and plus".</p>
+
+<h3>Issue 6 — Speak AI response (<code>expo-speech</code>)</h3>
+<div class="decision">
+  Added a speaker icon next to the copy icon at the bottom of every AI bubble. Tapping it calls <code>Speech.speak(cleanText, { rate: 1.0, onDone/onStopped/onError })</code> after stripping markdown via <code>cleanMessageForCopy</code>. Re-tapping the icon (or unmounting the bubble) calls <code>Speech.stop()</code>. Icon flips between <code>volume-high-outline</code> and <code>stop-circle-outline</code> (accent color) to indicate state.
+</div>
+<p>Per-card speak buttons were also added to the keyword/phrase slider cards. They call <code>extractHeadword(parsed.title)</code> first — strips <code>**markdown**</code>, <code>/IPA/</code> blocks, and <code>(part of speech)</code> — so only the headword itself is pronounced, not the metadata. Rate dropped to 0.9 for clearer pronunciation. Only one card can speak at a time (state via <code>speakingIndex</code>).</p>
+
+<h3>Issue 7 — list & quiz layout fixed by escaping the bubble shell</h3>
+<div class="tradeoff">
+  <strong>Root cause:</strong> when a horizontal <code>ScrollView</code> lives inside the <code>Bubble</code> shell (which uses <code>alignSelf: 'flex-start'</code>), the bubble shrinks to fit content. The slider then renders all cards in one row stretching far wider than the screen, getting clipped horizontally instead of scrolling. Net effect: only the last card was visible, text overflowed the action buttons.
+</div>
+<div class="decision">
+  Both <strong>keyword/phrase lists</strong> and <strong>quiz sliders</strong> now bypass the bubble shell entirely. The renderer returns a <code>quizWrap</code> container with <code>marginHorizontal: -30</code> (cancels the chat scroll's 30px padding for edge-to-edge bleed) wrapping a horizontal <code>ScrollView</code>. Cards use <code>snapToInterval={cardWidth + gap}</code>, <code>decelerationRate: 'fast'</code>, and <code>alignItems: 'stretch'</code> so the row size to the tallest card.
+</div>
+<ul>
+  <li><strong>Keyword/phrase card</strong> — width 280, <code>minHeight: 260</code> (grows for long content). Body has no <code>numberOfLines</code> truncation. Footer actions row pinned at bottom via <code>justifyContent: 'space-between'</code> with a top hairline divider.</li>
+  <li><strong>Action row per card</strong> — Copy → Speak (headword only) → Add (save). All three buttons are 36×36 circular pills.</li>
+  <li><strong>Phrase kind</strong>: hides the <code>Example:</code> line in the card and excludes it from the copied text (per user feedback that "Example:" cluttered phrase cards but is useful for vocabulary).</li>
+  <li><strong>Vocabulary kind</strong>: renders the example with a bold <code>Example:</code> prefix.</li>
+</ul>
+
+<h3>Issue 8 — "Do a quiz" starter + adaptive question count</h3>
+<div class="decision">
+  Added a fourth starter chip "Do a quiz" alongside the existing "Summarize / List keywords / List phrases" suggestions. The prompt instructs the model to return ONLY JSON of the shape <code>{questions:[{q, options[4], answer, explanation}]}</code> with no markdown fences. <code>tryParseQuiz()</code> strips optional <code>```json</code> wrappers, locates the first JSON object, validates each question shape, and clamps <code>answerIndex</code> to <code>[0..3]</code>.
+</div>
+<ul>
+  <li>The prompt asks the model to scale the question count to video content: 5 for short, 8–12 for medium, up to 20 for long/dense. Hard floor 5, hard cap 20.</li>
+  <li>Defensive backstop: <code>tryParseQuiz</code> additionally <code>.slice(0, 20)</code> in case the model overruns.</li>
+  <li><code>isQuizIntent(userMessage)</code> matches <code>quiz</code> / <code>multiple-choice</code> / <code>comprehension quiz</code> on the last user message to switch the assistant message into quiz-render mode.</li>
+</ul>
+
+<h3>Quiz UI</h3>
+<ul>
+  <li>Horizontal slider of cards; each card is 300×480 with <code>QUESTION N / TOTAL</code> label, question text (4 lines reserved via <code>minHeight: 88</code>), then 4 option buttons.</li>
+  <li>Options use <code>stripOptionPrefix</code> to drop any leading "A.", "B)", "C:" labels returned by the model so the A/B/C/D label rendered by the UI isn't duplicated.</li>
+  <li>Each option has <code>minHeight: 56</code> (2 lines × 18 lineHeight + padding) for visual balance.</li>
+  <li>Tapping an option locks the row: correct option turns positive-green, wrong option turns negative-red, the explanation line appears below.</li>
+</ul>
+
+<h3>Files touched</h3>
+<table>
+  <tr><th>File</th><th>Change</th></tr>
+  <tr><td><code>app/ai-tutor.tsx</code></td><td>Bubble speak button + per-card speak button via <code>expo-speech</code>; "Do a quiz" starter; <code>QuizQuestion</code> type + <code>QuizSlider</code> component + <code>tryParseQuiz</code> / <code>isQuizIntent</code> / <code>stripOptionPrefix</code> / <code>extractHeadword</code> helpers; list & quiz rendered outside bubble shell with <code>quizWrap</code> for edge-to-edge bleed; phrase-kind cards drop the example line</td></tr>
+</table>
+
+<h3>Tradeoffs</h3>
+<div class="tradeoff">
+  <strong>Quiz rendering depends on the model returning clean JSON.</strong> If the model wraps the JSON in prose or breaks the shape, <code>tryParseQuiz</code> returns <code>undefined</code> and the raw response renders as a normal markdown bubble — the user sees the questions in text form instead of as interactive cards. Acceptable fallback; a future iteration could attempt a second "format as JSON" pass.
+</div>
+<div class="tradeoff">
+  <strong>Speech is best-effort.</strong> <code>expo-speech</code> uses the device TTS engine, which has limited control over voice quality. The <code>onDone</code> / <code>onStopped</code> / <code>onError</code> callbacks reset speaking state but don't surface errors to the user.
+</div>
+
+<h2>Anything else worth knowing</h2>
+<ul>
+  <li>The legacy <code>src/services/ai.ts</code> stub and <code>src/hooks/useAICompanion.ts</code> are untouched. They aren't used by any V2 screen and the new <code>aiTutor.ts</code> service replaces them. Safe to delete in a follow-up cleanup if you want.</li>
+  <li>Listen now accepts two new optional params (<code>videoTitle</code>, <code>videoChannel</code>) so the AI Tutor can mention what's playing. <code>home.tsx</code> doesn't pass them yet — they fall back to empty strings, no harm. A small follow-up could enrich them at navigation time using the values from <code>videoService.add()</code>'s response.</li>
+  <li>The "Test connection" button in <code>ai-settings.tsx</code> uses the <em>currently-typed</em> key (not the saved one), so you can validate before persisting.</li>
+  <li>Type-check command run after each phase: <code>npx tsc --noEmit</code> — clean.</li>
+</ul>
+
+</body>
+</html>
