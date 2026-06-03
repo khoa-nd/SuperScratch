@@ -36,7 +36,7 @@
             <div class="flex items-center space-x-4">
                 <img src="pngtree-fifa-world-cup-2026-trophy-award-golden-celebration-global-sports-championship-png-image_18679245.webp" alt="Trophy" class="h-16 w-16 object-contain rounded-2xl bg-white p-1 border border-slate-200 shadow-sm">
                 <div>
-                    <h1 class="text-2xl font-black tracking-tight text-slate-900">Building World Cup 2026 Match Schedule Game</h1>
+                    <h1 class="text-2xl font-black tracking-tight text-slate-900">Hey Bao Long, Can you help Building World Cup 2026 Match Schedule?</h1>
                     <p class="text-xs text-slate-500">Match Flags are extra big! Guess the country & configure your group flags.</p>
                 </div>
             </div>
@@ -398,7 +398,14 @@
             const grid = document.getElementById('flagGrid');
             grid.innerHTML = "";
             
-            allNationsFlags.forEach(emoji => {
+            // Create a shuffled copy of allNationsFlags
+            const shuffledFlags = [...allNationsFlags];
+            for (let i = shuffledFlags.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledFlags[i], shuffledFlags[j]] = [shuffledFlags[j], shuffledFlags[i]];
+            }
+            
+            shuffledFlags.forEach(emoji => {
                 const button = document.createElement('button');
                 button.onclick = () => selectEmojiFlag(emoji);
                 button.className = "bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-500 rounded-xl p-2 flex items-center justify-center transition-all hover:scale-110 active:scale-90 text-4xl filter drop-shadow select-none";
