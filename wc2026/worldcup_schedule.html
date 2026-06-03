@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Cup 2026 Interactive Schedule Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom scrollbar style */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e2e8f0;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen pb-20">
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-40 backdrop-blur-md bg-white/90 border-b border-slate-200 shadow-md">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-4">
+                <img src="pngtree-fifa-world-cup-2026-trophy-award-golden-celebration-global-sports-championship-png-image_18679245.webp" alt="Trophy" class="h-16 w-16 object-contain rounded-2xl bg-white p-1 border border-slate-200 shadow-sm">
+                <div>
+                    <h1 class="text-2xl font-black tracking-tight text-slate-900">Building World Cup 2026 Match Schedule Game</h1>
+                    <p class="text-xs text-slate-500">Match Flags are extra big! Guess the country & configure your group flags.</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3 w-full md:w-auto justify-end">
+                <button id="saveBtn" class="flex-1 md:flex-initial bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition-all text-white px-6 py-3 rounded-2xl font-extrabold text-sm flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-floppy-disk mr-2"></i> Save Progress
+                </button>
+                <button id="resetBtn" class="flex-1 md:flex-initial bg-rose-50 hover:bg-rose-100 text-rose-600 px-6 py-3 rounded-2xl font-extrabold text-sm flex items-center justify-center transition-all border border-rose-200">
+                    <i class="fa-solid fa-rotate-left mr-2"></i> Reset Game
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 mt-8">
+        
+        <!-- Status Notification Banner -->
+        <div id="statusBanner" class="hidden mb-6 p-4 rounded-2xl border text-sm font-semibold text-center transition-all"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Column: Chronological Matches (Guesses) -->
+            <section class="lg:col-span-7 space-y-6 flex flex-col">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center space-x-4">
+                        
+                        <h2 class="text-3xl font-extrabold text-slate-900 flex items-center">
+                                            Matches Schedule (72 Games)
+                        </h2>
+                    </div>
+                    
+                    <!-- Search Input -->
+                    <div class="relative w-full sm:w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input type="text" id="matchSearch" placeholder="Search team/group/venue..." class="w-full bg-white border border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-800 placeholder-slate-400 outline-none transition-all">
+                    </div>
+                </div>
+
+                <!-- Matches Container (Infinite Scroll) -->
+                <div class="bg-white border border-slate-200 rounded-3xl p-4 sm:p-6 shadow-sm">
+                    <div id="matchesList" class="space-y-4 pr-2">
+                        <!-- Matches loaded dynamically by Javascript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Column: 12 Groups (Setup Flags) -->
+            <section class="lg:col-span-5 space-y-6">
+                <h2 class="text-2xl font-extrabold text-slate-900 flex items-center">
+                    <span class="bg-amber-100 text-amber-600 p-2 rounded-xl mr-3 text-lg">🚩</span>
+                    Group Stage Flags Setup
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6 pr-2">
+                    <!-- Dynamic rendering destinations -->
+                    <!-- Group A -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                        <h3 class="text-base font-extrabold text-indigo-600 border-b border-slate-100 pb-2 mb-3">Group A</h3>
+                        <div class="space-y-3" id="group_A_list"></div>
+                    </div>
+
+                    <!-- Group B -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                        <h3 class="text-base font-extrabold text-indigo-600 border-b border-slate-100 pb-2 mb-3">Group B</h3>
+                        <div class="space-y-3" id="group_B_list"></div>
+                    </div>
+
+                    <!-- Group C -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                        <h3 class="text-base font-extrabold text-indigo-600 border-b border-slate-100 pb-2 mb-3">Group C</h3>
+                        <div class="space-y-3" id="group_C_list"></div>
+                    </div>
+
+                    <!-- Group D -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                        <h3 class="text-base font-extrabold text-indigo-600 border-b border-slate-100 pb-2 mb-3">Group D</h3>
+                        <div class="space-y-3" id="group_D_list"></div>
+                    </div>
+
+                    <!-- Group E -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                        <h3 class="text-base font-extrabold text-indigo-600 border-b border-slate-100 pb-2 mb-3">Group E</h3>
+                        <div class="space-y-3" id="group_E_list"></div>
+                    </div>
+
+                    <!-- Group F -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                        <h3 class="text-base font-extrabold text-indigo-600 border-b border-slate-100 pb-2 mb-3">Group F</h3>
+                        <div class="space-y-3" id="group_F_list"></div>
+                    </div>
+
+                    <!-- Group G -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                        <h3 class="text-base font-extrabold text-indigo-600 border-b border-slate-100 pb-2 mb-3">Group G</h3>
+                        <div class="space-y-3" id="group_G_list"></div>
+                    </div>
+
+                    <!-- Group H -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                        <h3 class="text-base font-extrabold text-indigo-600 border-b border-slate-100 pb-2 mb-3">Group H</h3>
+                        <div class="space-y-3" id="group_H_list"></div>
+                    </div>
+
+                    <!-- Group I -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                        <h3 class="text-base font-extrabold text-indigo-600 border-b border-slate-100 pb-2 mb-3">Group I</h3>
+                        <div class="space-y-3" id="group_I_list"></div>
+                    </div>
+
+                    <!-- Group J -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                        <h3 class="text-base font-extrabold text-indigo-600 border-b border-slate-100 pb-2 mb-3">Group J</h3>
+                        <div class="space-y-3" id="group_J_list"></div>
+                    </div>
+
+                    <!-- Group K -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                        <h3 class="text-base font-extrabold text-indigo-600 border-b border-slate-100 pb-2 mb-3">Group K</h3>
+                        <div class="space-y-3" id="group_K_list"></div>
+                    </div>
+
+                    <!-- Group L -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                        <h3 class="text-base font-extrabold text-indigo-600 border-b border-slate-100 pb-2 mb-3">Group L</h3>
+                        <div class="space-y-3" id="group_L_list"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Interactive Selection Modal (Only 49 Flag Emojis, No Upload) -->
+    <div id="flagModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center hidden px-4">
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-lg shadow-2xl relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h4 class="text-lg font-bold text-slate-900 mb-2" id="modalTitle">Select Country Flag</h4>
+            <p class="text-xs text-slate-500 mb-5">Click on a flag below to assign it. No custom images required.</p>
+
+            <div class="space-y-5">
+                <!-- Option 1: 49 Flags Grid -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+                    <h5 class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-3">Available Nations Flags</h5>
+                    <div class="grid grid-cols-7 gap-2" id="flagGrid">
+                        <!-- 49 Flags loaded dynamically by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Reset Option -->
+                <button onclick="resetCurrentFlag()" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl py-3 text-xs font-bold transition-all">
+                    Reset to Default Placeholder
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Injection -->
+    <script>
+        // Full FIFA match list
+        const matches = [
+            { id: 1, date: "Thursday, 11 June 2026", group: "Group A", home: "Mexico", homeFlag: "🇲🇽", away: "South Africa", awayFlag: "🇿🇦", venue: "Mexico City Stadium" },
+            { id: 2, date: "Thursday, 11 June 2026", group: "Group A", home: "Korea Republic", homeFlag: "🇰🇷", away: "Czechia", awayFlag: "🇨🇿", venue: "Estadio Guadalajara" },
+            { id: 3, date: "Friday, 12 June 2026", group: "Group B", home: "Canada", homeFlag: "🇨🇦", away: "Bosnia and Herzegovina", awayFlag: "🇧🇦", venue: "Toronto Stadium" },
+            { id: 4, date: "Friday, 12 June 2026", group: "Group D", home: "USA", homeFlag: "🇺🇸", away: "Paraguay", awayFlag: "🇵🇾", venue: "Los Angeles Stadium" },
+            { id: 5, date: "Saturday, 13 June 2026", group: "Group C", home: "Haiti", homeFlag: "🇭🇹", away: "Scotland", awayFlag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", venue: "Boston Stadium" },
+            { id: 6, date: "Saturday, 13 June 2026", group: "Group D", home: "Australia", homeFlag: "🇦🇺", away: "Türkiye", awayFlag: "🇹🇷", venue: "BC Place Vancouver" },
+            { id: 7, date: "Saturday, 13 June 2026", group: "Group C", home: "Brazil", homeFlag: "🇧🇷", away: "Morocco", awayFlag: "🇲🇦", venue: "New York New Jersey Stadium" },
+            { id: 8, date: "Saturday, 13 June 2026", group: "Group B", home: "Qatar", homeFlag: "🇶🇦", away: "Switzerland", awayFlag: "🇨🇭", venue: "San Francisco Bay Area Stadium" },
+            { id: 9, date: "Sunday, 14 June 2026", group: "Group E", home: "Côte d'Ivoire", homeFlag: "🇨🇮", away: "Ecuador", awayFlag: "🇪🇨", venue: "Philadelphia Stadium" },
+            { id: 10, date: "Sunday, 14 June 2026", group: "Group E", home: "Germany", homeFlag: "🇩🇪", away: "Curaçao", awayFlag: "🇨🇼", venue: "Houston Stadium" },
+            { id: 11, date: "Sunday, 14 June 2026", group: "Group F", home: "Netherlands", homeFlag: "🇳🇱", away: "Japan", awayFlag: "🇯🇵", venue: "Dallas Stadium" },
+            { id: 12, date: "Sunday, 14 June 2026", group: "Group F", home: "Sweden", homeFlag: "🇸🇪", away: "Tunisia", awayFlag: "🇹🇳", venue: "Estadio Monterrey" },
+            { id: 13, date: "Monday, 15 June 2026", group: "Group H", home: "Saudi Arabia", homeFlag: "🇸🇦", away: "Uruguay", awayFlag: "🇺🇾", venue: "Miami Stadium" },
+            { id: 14, date: "Monday, 15 June 2026", group: "Group H", home: "Spain", homeFlag: "🇪🇸", away: "Cabo Verde", awayFlag: "🇨🇻", venue: "Atlanta Stadium" },
+            { id: 15, date: "Monday, 15 June 2026", group: "Group G", home: "IR Iran", homeFlag: "🇮🇷", away: "New Zealand", awayFlag: "🇳🇿", venue: "Los Angeles Stadium" },
+            { id: 16, date: "Monday, 15 June 2026", group: "Group G", home: "Belgium", homeFlag: "🇧🇪", away: "Egypt", awayFlag: "🇪🇬", venue: "Seattle Stadium" },
+            { id: 17, date: "Tuesday, 16 June 2026", group: "Group I", home: "France", homeFlag: "🇫🇷", away: "Senegal", awayFlag: "🇸🇳", venue: "New York New Jersey Stadium" },
+            { id: 18, date: "Tuesday, 16 June 2026", group: "Group I", home: "Iraq", homeFlag: "🇮🇶", away: "Norway", awayFlag: "🇳🇴", venue: "Boston Stadium" },
+            { id: 19, date: "Tuesday, 16 June 2026", group: "Group J", home: "Argentina", homeFlag: "🇦🇷", away: "Algeria", awayFlag: "🇩🇿", venue: "Kansas City Stadium" },
+            { id: 20, date: "Tuesday, 16 June 2026", group: "Group J", home: "Austria", homeFlag: "🇦🇹", away: "Jordan", awayFlag: "🇯🇴", venue: "San Francisco Bay Area Stadium" },
+            { id: 21, date: "Wednesday, 17 June 2026", group: "Group L", home: "Ghana", homeFlag: "🇬🇭", away: "Panama", awayFlag: "🇵🇦", venue: "Toronto Stadium" },
+            { id: 22, date: "Wednesday, 17 June 2026", group: "Group L", home: "England", homeFlag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", away: "Croatia", awayFlag: "🇭🇷", venue: "Dallas Stadium" },
+            { id: 23, date: "Wednesday, 17 June 2026", group: "Group K", home: "Portugal", homeFlag: "🇵🇹", away: "Congo DR", awayFlag: "🇨🇩", venue: "Houston Stadium" },
+            { id: 24, date: "Wednesday, 17 June 2026", group: "Group K", home: "Uzbekistan", homeFlag: "🇺🇿", away: "Colombia", awayFlag: "🇨🇴", venue: "Mexico City Stadium" },
+            { id: 25, date: "Thursday, 18 June 2026", group: "Group A", home: "Czechia", homeFlag: "🇨🇿", away: "South Africa", awayFlag: "🇿🇦", venue: "Atlanta Stadium" },
+            { id: 26, date: "Thursday, 18 June 2026", group: "Group B", home: "Switzerland", homeFlag: "🇨🇭", away: "Bosnia and Herzegovina", awayFlag: "🇧🇦", venue: "Los Angeles Stadium" },
+            { id: 27, date: "Thursday, 18 June 2026", group: "Group B", home: "Canada", homeFlag: "🇨🇦", away: "Qatar", awayFlag: "🇶🇦", venue: "BC Place Vancouver" },
+            { id: 28, date: "Thursday, 18 June 2026", group: "Group A", home: "Mexico", homeFlag: "🇲🇽", away: "Korea Republic", awayFlag: "🇰🇷", venue: "Estadio Guadalajara" },
+            { id: 29, date: "Friday, 19 June 2026", group: "Group C", home: "Brazil", homeFlag: "🇧🇷", away: "Haiti", awayFlag: "🇭🇹", venue: "Philadelphia Stadium" },
+            { id: 30, date: "Friday, 19 June 2026", group: "Group C", home: "Scotland", homeFlag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", away: "Morocco", awayFlag: "🇲🇦", venue: "Boston Stadium" },
+            { id: 31, date: "Friday, 19 June 2026", group: "Group D", home: "Türkiye", homeFlag: "🇹🇷", away: "Paraguay", awayFlag: "🇵🇾", venue: "San Francisco Bay Area Stadium" },
+            { id: 32, date: "Friday, 19 June 2026", group: "Group D", home: "USA", homeFlag: "🇺🇸", away: "Australia", awayFlag: "🇦🇺", venue: "Seattle Stadium" },
+            { id: 33, date: "Saturday, 20 June 2026", group: "Group E", home: "Germany", homeFlag: "🇩🇪", away: "Côte d'Ivoire", awayFlag: "🇨🇮", venue: "Toronto Stadium" },
+            { id: 34, date: "Saturday, 20 June 2026", group: "Group E", home: "Ecuador", homeFlag: "🇪🇨", away: "Curaçao", awayFlag: "🇨🇼", venue: "Kansas City Stadium" },
+            { id: 35, date: "Saturday, 20 June 2026", group: "Group F", home: "Netherlands", homeFlag: "🇳🇱", away: "Sweden", awayFlag: "🇸🇪", venue: "Houston Stadium" },
+            { id: 36, date: "Saturday, 20 June 2026", group: "Group F", home: "Tunisia", homeFlag: "🇹🇳", away: "Japan", awayFlag: "🇯🇵", venue: "Estadio Monterrey" },
+            { id: 37, date: "Sunday, 21 June 2026", group: "Group H", home: "Uruguay", homeFlag: "🇺🇾", away: "Cabo Verde", awayFlag: "🇨🇻", venue: "Miami Stadium" },
+            { id: 38, date: "Sunday, 21 June 2026", group: "Group H", home: "Spain", homeFlag: "🇪🇸", away: "Saudi Arabia", awayFlag: "🇸🇦", venue: "Atlanta Stadium" },
+            { id: 39, date: "Sunday, 21 June 2026", group: "Group G", home: "Belgium", homeFlag: "🇧🇪", away: "IR Iran", awayFlag: "🇮🇷", venue: "Los Angeles Stadium" },
+            { id: 40, date: "Sunday, 21 June 2026", group: "Group G", home: "New Zealand", homeFlag: "🇳🇿", away: "Egypt", awayFlag: "🇪🇬", venue: "BC Place Vancouver" },
+            { id: 41, date: "Monday, 22 June 2026", group: "Group I", home: "Norway", homeFlag: "🇳🇴", away: "Senegal", awayFlag: "🇸🇳", venue: "New York New Jersey Stadium" },
+            { id: 42, date: "Monday, 22 June 2026", group: "Group I", home: "France", homeFlag: "🇫🇷", away: "Iraq", awayFlag: "🇮🇶", venue: "Philadelphia Stadium" },
+            { id: 43, date: "Monday, 22 June 2026", group: "Group J", home: "Argentina", homeFlag: "🇦🇷", away: "Austria", awayFlag: "🇦🇹", venue: "Dallas Stadium" },
+            { id: 44, date: "Monday, 22 June 2026", group: "Group J", home: "Jordan", homeFlag: "🇯🇴", away: "Algeria", awayFlag: "🇩🇿", venue: "San Francisco Bay Area Stadium" },
+            { id: 45, date: "Tuesday, 23 June 2026", group: "Group L", home: "England", homeFlag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", away: "Ghana", awayFlag: "🇬🇭", venue: "Boston Stadium" },
+            { id: 46, date: "Tuesday, 23 June 2026", group: "Group L", home: "Panama", homeFlag: "🇵🇦", away: "Croatia", awayFlag: "🇭🇷", venue: "Toronto Stadium" },
+            { id: 47, date: "Tuesday, 23 June 2026", group: "Group K", home: "Portugal", homeFlag: "🇵🇹", away: "Uzbekistan", awayFlag: "🇺🇿", venue: "Houston Stadium" },
+            { id: 48, date: "Tuesday, 23 June 2026", group: "Group K", home: "Colombia", homeFlag: "🇨🇴", away: "Congo DR", awayFlag: "🇨🇩", venue: "Estadio Guadalajara" },
+            { id: 49, date: "Wednesday, 24 June 2026", group: "Group C", home: "Scotland", homeFlag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", away: "Brazil", awayFlag: "🇧🇷", venue: "Miami Stadium" },
+            { id: 50, date: "Wednesday, 24 June 2026", group: "Group C", home: "Morocco", homeFlag: "🇲🇦", away: "Haiti", awayFlag: "🇭🇹", venue: "Atlanta Stadium" },
+            { id: 51, date: "Wednesday, 24 June 2026", group: "Group B", home: "Switzerland", homeFlag: "🇨🇭", away: "Canada", awayFlag: "🇨🇦", venue: "BC Place Vancouver" },
+            { id: 52, date: "Wednesday, 24 June 2026", group: "Group B", home: "Bosnia and Herzegovina", homeFlag: "🇧🇦", away: "Qatar", awayFlag: "🇶🇦", venue: "Seattle Stadium" },
+            { id: 53, date: "Wednesday, 24 June 2026", group: "Group A", home: "Czechia", homeFlag: "🇨🇿", away: "Mexico", awayFlag: "🇲🇽", venue: "Mexico City Stadium" },
+            { id: 54, date: "Wednesday, 24 June 2026", group: "Group A", home: "South Africa", homeFlag: "🇿🇦", away: "Korea Republic", awayFlag: "🇰🇷", venue: "Estadio Monterrey" },
+            { id: 55, date: "Thursday, 25 June 2026", group: "Group E", home: "Curaçao", homeFlag: "🇨🇼", away: "Côte d'Ivoire", awayFlag: "🇨🇮", venue: "Philadelphia Stadium" },
+            { id: 56, date: "Thursday, 25 June 2026", group: "Group E", home: "Ecuador", homeFlag: "🇪🇨", away: "Germany", awayFlag: "🇩🇪", venue: "New York New Jersey Stadium" },
+            { id: 57, date: "Thursday, 25 June 2026", group: "Group F", home: "Japan", homeFlag: "🇯🇵", away: "Sweden", awayFlag: "🇸🇪", venue: "Dallas Stadium" },
+            { id: 58, date: "Thursday, 25 June 2026", group: "Group F", home: "Tunisia", homeFlag: "🇹🇳", away: "Netherlands", awayFlag: "🇳🇱", venue: "Kansas City Stadium" },
+            { id: 59, date: "Thursday, 25 June 2026", group: "Group D", home: "Türkiye", homeFlag: "🇹🇷", away: "USA", awayFlag: "🇺🇸", venue: "Los Angeles Stadium" },
+            { id: 60, date: "Thursday, 25 June 2026", group: "Group D", home: "Paraguay", homeFlag: "🇵🇾", away: "Australia", awayFlag: "🇦🇺", venue: "San Francisco Bay Area Stadium" },
+            { id: 61, date: "Friday, 26 June 2026", group: "Group I", home: "Norway", homeFlag: "🇳🇴", away: "France", awayFlag: "🇫🇷", venue: "Boston Stadium" },
+            { id: 62, date: "Friday, 26 June 2026", group: "Group I", home: "Senegal", homeFlag: "🇸🇳", away: "Iraq", awayFlag: "🇮🇶", venue: "Toronto Stadium" },
+            { id: 63, date: "Friday, 26 June 2026", group: "Group G", home: "Egypt", homeFlag: "🇪🇬", away: "IR Iran", awayFlag: "🇮🇷", venue: "Seattle Stadium" },
+            { id: 64, date: "Friday, 26 June 2026", group: "Group G", home: "New Zealand", homeFlag: "🇳🇿", away: "Belgium", awayFlag: "🇧🇪", venue: "BC Place Vancouver" },
+            { id: 65, date: "Friday, 26 June 2026", group: "Group H", home: "Cabo Verde", homeFlag: "🇨🇻", away: "Saudi Arabia", awayFlag: "🇸🇦", venue: "Houston Stadium" },
+            { id: 66, date: "Friday, 26 June 2026", group: "Group H", home: "Uruguay", homeFlag: "🇺🇾", away: "Spain", awayFlag: "🇪🇸", venue: "Estadio Guadalajara" },
+            { id: 72, date: "Saturday, 27 June 2026", group: "Group K", home: "Congo DR", homeFlag: "🇨🇩", away: "Uzbekistan", awayFlag: "🇺🇿", venue: "Atlanta Stadium" },
+            { id: 67, date: "Saturday, 27 June 2026", group: "Group L", home: "Panama", homeFlag: "🇵🇦", away: "England", awayFlag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", venue: "New York New Jersey Stadium" },
+            { id: 68, date: "Saturday, 27 June 2026", group: "Group L", home: "Croatia", homeFlag: "🇭🇷", away: "Ghana", awayFlag: "🇬🇭", venue: "Philadelphia Stadium" },
+            { id: 69, date: "Saturday, 27 June 2026", group: "Group J", home: "Algeria", homeFlag: "🇩🇿", away: "Austria", awayFlag: "🇦🇹", venue: "Kansas City Stadium" },
+            { id: 70, date: "Saturday, 27 June 2026", group: "Group J", home: "Jordan", homeFlag: "🇯🇴", away: "Argentina", awayFlag: "🇦🇷", venue: "Dallas Stadium" },
+            { id: 71, date: "Saturday, 27 June 2026", group: "Group K", home: "Colombia", homeFlag: "🇨🇴", away: "Portugal", awayFlag: "🇵🇹", venue: "Miami Stadium" }
+        ];
+
+        // Group configuration
+        const groups = {
+            A: ["Mexico", "South Africa", "Korea Republic", "Czechia"],
+            B: ["Canada", "Bosnia and Herzegovina", "Qatar", "Switzerland"],
+            C: ["Haiti", "Scotland", "Brazil", "Morocco"],
+            D: ["USA", "Paraguay", "Australia", "Türkiye"],
+            E: ["Côte d'Ivoire", "Ecuador", "Germany", "Curaçao"],
+            F: ["Netherlands", "Japan", "Sweden", "Tunisia"],
+            G: ["IR Iran", "New Zealand", "Belgium", "Egypt"],
+            H: ["Saudi Arabia", "Uruguay", "Spain", "Cabo Verde"],
+            I: ["France", "Senegal", "Iraq", "Norway"],
+            J: ["Argentina", "Algeria", "Austria", "Jordan"],
+            K: ["Portugal", "Congo DR", "Uzbekistan", "Colombia"],
+            L: ["Ghana", "Panama", "England", "Croatia"]
+        };
+
+        // Complete 48 nation flags list
+        const allNationsFlags = [
+            "🇲🇽", "🇿🇦", "🇰🇷", "🇨🇿", "🇨🇦", "🇧🇦", "🇶🇦", "🇨🇭", 
+            "🇭🇹", "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "🇧🇷", "🇲🇦", "🇺🇸", "🇵🇾", "🇦🇺", "🇹🇷", 
+            "🇨🇮", "🇪🇨", "🇩🇪", "🇨🇼", "🇳🇱", "🇯🇵", "🇸🇪", "🇹🇳", 
+            "🇮🇷", "🇳🇿", "🇧🇪", "🇪🇬", "🇸🇦", "🇺🇾", "🇪🇸", "🇨🇻", 
+            "🇫🇷", "🇸🇳", "🇮🇶", "🇳🇴", "🇦🇷", "🇩🇿", "🇦🇹", "🇯🇴", 
+            "🇵🇹", "🇨🇩", "🇺🇿", "🇨🇴", "🇬🇭", "🇵🇦", "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "🇭🇷"
+        ];
+
+        // UI memory state
+        const groupFlagsData = {}; 
+        let activeModalTarget = null; // target box id
+
+        // Sort matches chronologically
+        function getParsedDate(dateStr) {
+            const parts = dateStr.replace(/,/g, '').split(' ');
+            const day = parseInt(parts[1]);
+            const monthName = parts[2];
+            const months = { "June": 5, "July": 6 };
+            return new Date(2026, months[monthName], day);
+        }
+
+        const sortedMatches = [...matches].sort((a, b) => getParsedDate(a.date) - getParsedDate(b.date));
+
+        // Render Match Schedule on Left Side
+        function renderMatches(filterText = "") {
+            const container = document.getElementById('matchesList');
+            container.innerHTML = "";
+            const cleanFilter = filterText.toLowerCase().trim();
+
+            sortedMatches.forEach(m => {
+                if (cleanFilter) {
+                    const matchText = `${m.home} ${m.away} ${m.group} ${m.date} ${m.venue}`.toLowerCase();
+                    if (!matchText.includes(cleanFilter)) return;
+                }
+
+                const card = document.createElement('div');
+                card.className = "bg-slate-50 border border-slate-200/80 rounded-2xl p-5 hover:border-slate-300 transition-all shadow-sm";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center text-[10px] text-slate-500 mb-3 font-semibold tracking-wider">
+                        <span>${m.date.toUpperCase()} • ${m.group.toUpperCase()}</span>
+                        <span class="text-indigo-600 font-bold">${m.venue.toUpperCase()}</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-4">
+                        <!-- Home Team -->
+                        <div class="flex-1 flex items-center space-x-4">
+                            <!-- Big Flag emoji (text-7xl) for Kids -->
+                            <span class="text-7xl filter drop-shadow hover:scale-115 transition-transform duration-200 select-none">${m.homeFlag}</span>
+                            <input type="text" id="match_${m.id}_home" placeholder="Country name?" class="w-full bg-white border border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-2xl px-4 py-3.5 text-base text-slate-800 placeholder-slate-400 outline-none transition-all shadow-inner">
+                        </div>
+                        <span class="text-xs font-black text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">VS</span>
+                        <!-- Away Team -->
+                        <div class="flex-1 flex items-center space-x-4 justify-end">
+                            <input type="text" id="match_${m.id}_away" placeholder="Country name?" class="w-full bg-white border border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-2xl px-4 py-3.5 text-base text-slate-800 placeholder-slate-400 outline-none transition-all text-right shadow-inner">
+                            <span class="text-7xl filter drop-shadow hover:scale-115 transition-transform duration-200 select-none">${m.awayFlag}</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            if (container.children.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-slate-400 text-sm">
+                        <i class="fa-solid fa-face-frown text-3xl mb-2 text-indigo-400/40"></i>
+                        <p>No matches found matching "${filterText}"</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Render Group Standings list on Right Side
+        function renderGroups() {
+            for (const key in groups) {
+                const groupContainer = document.getElementById(`group_${key}_list`);
+                if (!groupContainer) continue;
+                groupContainer.innerHTML = "";
+
+                groups[key].forEach(team => {
+                    const boxId = `box_${key}_${team.replace(/\s+/g, '')}`;
+                    
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200";
+                    row.innerHTML = `
+                        <span class="text-sm font-semibold text-slate-700">${team}</span>
+                        <div class="relative group">
+                            <div id="${boxId}" class="w-24 h-14 bg-slate-100 border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-lg flex items-center justify-center cursor-pointer transition-all overflow-hidden flag-box" onclick="openFlagModal('${boxId}', '${team}')">
+                                <span class="text-[10px] text-slate-500 font-bold group-hover:text-indigo-600 text-center px-1">Set Flag</span>
+                            </div>
+                        </div>
+                    `;
+                    groupContainer.appendChild(row);
+                });
+            }
+        }
+
+        // Search listener
+        document.getElementById('matchSearch').addEventListener('input', (e) => {
+            renderMatches(e.target.value);
+        });
+
+        // Load 49 Flags Grid in the Modal Dialog once on setup
+        function initModalFlags() {
+            const grid = document.getElementById('flagGrid');
+            grid.innerHTML = "";
+            
+            allNationsFlags.forEach(emoji => {
+                const button = document.createElement('button');
+                button.onclick = () => selectEmojiFlag(emoji);
+                button.className = "bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-500 rounded-xl p-2 flex items-center justify-center transition-all hover:scale-110 active:scale-90 text-4xl filter drop-shadow select-none";
+                button.innerHTML = emoji;
+                grid.appendChild(button);
+            });
+        }
+
+        // Open flag modal selection
+        window.openFlagModal = function(boxId, teamName) {
+            activeModalTarget = boxId;
+            document.getElementById('modalTitle').textContent = `Set Flag for ${teamName}`;
+            document.getElementById('flagModal').classList.remove('hidden');
+        };
+
+        // Close modal helper
+        window.closeModal = function() {
+            document.getElementById('flagModal').classList.add('hidden');
+            activeModalTarget = null;
+        };
+
+        // Set Emoji Flag
+        window.selectEmojiFlag = function(emoji) {
+            if (!activeModalTarget) return;
+            
+            groupFlagsData[activeModalTarget] = emoji;
+            updateBoxUI(activeModalTarget, emoji);
+            closeModal();
+        };
+
+        // Reset current flag to default placeholder
+        window.resetCurrentFlag = function() {
+            if (!activeModalTarget) return;
+
+            delete groupFlagsData[activeModalTarget];
+            const box = document.getElementById(activeModalTarget);
+            box.innerHTML = `<span class="text-[10px] text-slate-500 font-bold group-hover:text-indigo-600 text-center px-1">Set Flag</span>`;
+            box.className = "w-24 h-14 bg-slate-100 border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-lg flex items-center justify-center cursor-pointer transition-all overflow-hidden flag-box";
+            closeModal();
+        };
+
+        // Helper to update flag container UI
+        function updateBoxUI(boxId, value) {
+            const box = document.getElementById(boxId);
+            if (!box) return;
+
+            box.innerHTML = `<span class="text-4xl select-none filter drop-shadow">${value}</span>`;
+            box.className = "w-24 h-14 bg-indigo-50 border border-solid border-indigo-400 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden flag-box";
+        }
+
+        // Status banner builder
+        function showBanner(message, isSuccess = true) {
+            const banner = document.getElementById('statusBanner');
+            banner.textContent = message;
+            banner.className = `mb-6 p-4 rounded-2xl border text-sm font-semibold text-center transition-all ${
+                isSuccess 
+                ? 'bg-emerald-100 text-emerald-800 border-emerald-200' 
+                : 'bg-rose-100 text-rose-800 border-rose-200'
+            }`;
+            banner.classList.remove('hidden');
+            setTimeout(() => {
+                banner.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Save progress to LocalStorage
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const gameData = {
+                matches: {},
+                flags: groupFlagsData
+            };
+
+            // Capture all match guess text inputs
+            document.querySelectorAll('input[type="text"]').forEach(input => {
+                if (input.id.startsWith("match_")) {
+                    gameData.matches[input.id] = input.value;
+                }
+            });
+
+            localStorage.setItem('worldcup_2026_game_state_v3', JSON.stringify(gameData));
+            showBanner('Progress saved successfully in local storage!');
+        });
+
+        // Reset game helper
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear your current progress?')) {
+                localStorage.removeItem('worldcup_2026_game_state_v3');
+                
+                // Reset match texts
+                document.querySelectorAll('input[type="text"]').forEach(input => {
+                    if (input.id.startsWith("match_")) {
+                        input.value = '';
+                    }
+                });
+
+                // Reset group flags
+                for (const key in groupFlagsData) {
+                    delete groupFlagsData[key];
+                }
+
+                // Reset boxes UI
+                document.querySelectorAll('.flag-box').forEach(box => {
+                    box.innerHTML = `<span class="text-[10px] text-slate-500 font-bold group-hover:text-indigo-600 text-center px-1">Set Flag</span>`;
+                    box.className = "w-24 h-14 bg-slate-100 border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-lg flex items-center justify-center cursor-pointer transition-all overflow-hidden flag-box";
+                });
+
+                showBanner('Game reset successfully!', false);
+            }
+        });
+
+        // Initializer
+        window.addEventListener('load', () => {
+            // Render basic lists & grids
+            renderMatches();
+            renderGroups();
+            initModalFlags();
+
+            // Load saved state
+            const savedStateStr = localStorage.getItem('worldcup_2026_game_state_v3');
+            if (savedStateStr) {
+                try {
+                    const savedState = JSON.parse(savedStateStr);
+
+                    // Restore match guesses
+                    if (savedState.matches) {
+                        for (const id in savedState.matches) {
+                            const el = document.getElementById(id);
+                            if (el) el.value = savedState.matches[id];
+                        }
+                    }
+
+                    // Restore group flags
+                    if (savedState.flags) {
+                        for (const boxId in savedState.flags) {
+                            const emojiValue = savedState.flags[boxId];
+                            groupFlagsData[boxId] = emojiValue;
+                            updateBoxUI(boxId, emojiValue);
+                        }
+                    }
+                    showBanner('Previous progress restored!');
+                } catch (e) {
+                    console.error('Error loading saved state', e);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
