@@ -37,7 +37,7 @@
                 <img src="pngtree-fifa-world-cup-2026-trophy-award-golden-celebration-global-sports-championship-png-image_18679245.webp" alt="Trophy" class="h-16 w-16 object-contain rounded-2xl bg-white p-1 border border-slate-200 shadow-sm">
                 <div>
                     <h1 class="text-2xl font-black tracking-tight text-slate-900">Hey Bao Long, Can you help Building World Cup 2026 Match Schedule?</h1>
-                    <p class="text-xs text-slate-500">Match Flags are extra big! Guess the country & configure your group flags.</p>
+                    <h2 class="text-xs text-slate-500 font-semibold">You could use your flags book</h2>
                 </div>
             </div>
             
@@ -376,7 +376,10 @@
                     const row = document.createElement('div');
                     row.className = "flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200";
                     row.innerHTML = `
-                        <span class="text-sm font-semibold text-slate-700">${team}</span>
+                        <a href="https://www.google.com/maps/place/${encodeURIComponent(team)}" target="_blank" class="text-sm font-semibold text-slate-700 hover:text-indigo-600 hover:underline flex items-center gap-1">
+                            ${team}
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-50"></i>
+                        </a>
                         <div class="relative group">
                             <div id="${boxId}" class="w-24 h-14 bg-slate-100 border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-lg flex items-center justify-center cursor-pointer transition-all overflow-hidden flag-box" onclick="openFlagModal('${boxId}', '${team}')">
                                 <span class="text-[10px] text-slate-500 font-bold group-hover:text-indigo-600 text-center px-1">Set Flag</span>
