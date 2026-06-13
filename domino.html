@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cờ Domino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#1c2b3d; --bg2:#0d1722;
+  --felt:#1f7a4d; --felt2:#175c3a;
+  --board:#f3ecd8;
+  --ink:#1d1d1b;
+  --cream:#faf5e6;
+  --red:#d6402e;
+  --gold:#c9952c;
+  --green:#2e9e52;
+  --blue:#2a5fb4;
+  --tile:#fdfcf7;
+  --tile-d:#d9d3c2;
+  --pip:#2a2a2a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Be Vietnam Pro',sans-serif;color:var(--ink);
+  background:
+    radial-gradient(ellipse at 50% 22%, rgba(255,255,255,.07), transparent 60%),
+    linear-gradient(160deg,var(--bg1),var(--bg2));
+  min-height:100vh;padding:14px;
+}
+h1,h2,h3,.bungee{font-family:'Bungee',cursive;font-weight:400}
+
+.topbar{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.topbar h1{
+  color:var(--cream);font-size:clamp(20px,3.4vw,34px);letter-spacing:1px;
+  text-shadow:0 3px 0 rgba(0,0,0,.45),0 0 30px rgba(201,149,44,.3);
+}
+.topbar h1 span{color:var(--gold)}
+
+.btn{
+  font-family:'Be Vietnam Pro',sans-serif;font-weight:700;font-size:14px;
+  padding:9px 16px;border:none;border-radius:10px;cursor:pointer;
+  background:var(--cream);color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.35);
+  transition:transform .12s,box-shadow .12s,filter .12s;
+}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 5px 0 rgba(0,0,0,.35)}
+.btn:active:not(:disabled){transform:translateY(1px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-red{background:var(--red);color:#fff}
+.btn-gold{background:var(--gold);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn-dark{background:#2c2c2c;color:#f3ecd8}
+
+.game-wrap{display:flex;gap:18px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+
+.felt{
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(255,255,255,.08), transparent 55%),
+    linear-gradient(160deg,var(--felt),var(--felt2));
+  border:10px solid #5b3a1e;
+  border-radius:18px;
+  box-shadow:0 14px 40px rgba(0,0,0,.5), inset 0 0 60px rgba(0,0,0,.35);
+  padding:14px;
+  width:min(840px,96vw);
+}
+
+.opp-row,.you-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:48px}
+.row-label{
+  font-family:'Bungee',cursive;color:var(--cream);font-size:13px;
+  background:rgba(0,0,0,.3);padding:4px 10px;border-radius:8px;letter-spacing:1px;
+  white-space:nowrap;
+}
+.row-label small{display:block;font-family:'Be Vietnam Pro';font-size:10px;opacity:.85;letter-spacing:0}
+
+/* face-down tile for opponent */
+.tile-back{
+  width:30px;height:54px;border-radius:6px;
+  background:linear-gradient(160deg,#7a1f1f,#4a1010);
+  border:2px solid #340b0b;box-shadow:0 3px 0 rgba(0,0,0,.4);
+  display:flex;align-items:center;justify-content:center;
+}
+.tile-back::after{content:"";width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.12)}
+
+/* the table / chain */
+.table-area{
+  margin:14px 0;background:rgba(0,0,0,.16);border-radius:14px;
+  min-height:160px;padding:14px;overflow:auto;
+  box-shadow:inset 0 0 30px rgba(0,0,0,.3);
+}
+.chain{display:flex;flex-wrap:wrap;gap:4px;align-items:center;justify-content:center}
+
+/* a domino on the table = two squares side by side (horizontal) */
+.dom{
+  display:flex;border-radius:7px;background:var(--tile);
+  border:2px solid var(--tile-d);box-shadow:0 4px 0 rgba(0,0,0,.35);
+  overflow:hidden;
+}
+.dom.h{flex-direction:row}
+.dom.v{flex-direction:column}
+.half{
+  width:42px;height:42px;position:relative;background:var(--tile);
+}
+.dom.h .half+.half{border-left:2px solid var(--tile-d)}
+.dom.v .half+.half{border-top:2px solid var(--tile-d)}
+
+/* pips: 3x3 grid */
+.half .pips{position:absolute;inset:5px;display:grid;
+  grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.half .pips i{align-self:center;justify-self:center;width:8px;height:8px;border-radius:50%;
+  background:var(--pip);box-shadow:inset 0 -1px 1px rgba(255,255,255,.4)}
+/* pip positions via grid-area helpers */
+.p-tl{grid-area:1/1} .p-tc{grid-area:1/2} .p-tr{grid-area:1/3}
+.p-ml{grid-area:2/1} .p-mc{grid-area:2/2} .p-mr{grid-area:2/3}
+.p-bl{grid-area:3/1} .p-bc{grid-area:3/2} .p-br{grid-area:3/3}
+
+/* hand tiles (vertical, clickable) */
+.hand{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;min-height:96px}
+.hand .dom{
+  flex-direction:column;cursor:pointer;transition:transform .12s,box-shadow .12s,filter .12s;
+}
+.hand .dom .half{width:44px;height:44px}
+.hand .dom .half+.half{border-left:none;border-top:2px solid var(--tile-d)}
+.hand .dom.playable:hover{transform:translateY(-8px);box-shadow:0 10px 0 rgba(0,0,0,.4);filter:brightness(1.04)}
+.hand .dom.playable{outline:2px solid var(--gold);outline-offset:1px}
+.hand .dom.dim{opacity:.45;cursor:not-allowed}
+.hand .dom.sel{transform:translateY(-8px);box-shadow:0 10px 0 rgba(201,149,44,.6)}
+
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:12px}
+.status{
+  color:var(--cream);font-weight:600;text-align:center;min-height:24px;
+  background:rgba(0,0,0,.25);padding:8px 14px;border-radius:10px;margin:8px auto 0;
+  max-width:560px;
+}
+.status b{color:var(--gold)}
+
+/* side panel */
+.side{
+  width:min(260px,96vw);color:var(--cream);
+  background:rgba(0,0,0,.28);border-radius:14px;padding:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+.side h2{font-size:16px;color:var(--gold);margin-bottom:10px;letter-spacing:1px}
+.side ol{margin:0 0 12px 18px;font-size:13px;line-height:1.55}
+.side ol li{margin:4px 0}
+.score{display:flex;gap:10px;margin-bottom:12px}
+.score .box{flex:1;background:rgba(255,255,255,.08);border-radius:10px;padding:10px;text-align:center}
+.score .box .n{font-family:'Bungee';font-size:26px;color:var(--gold)}
+.score .box .l{font-size:11px;opacity:.85}
+.boneyard-info{font-size:13px;background:rgba(255,255,255,.08);border-radius:10px;padding:10px;text-align:center}
+.boneyard-info b{color:var(--gold);font-size:18px}
+
+/* end overlay */
+.overlay{
+  position:fixed;inset:0;background:rgba(5,10,16,.78);display:none;
+  align-items:center;justify-content:center;z-index:50;
+}
+.overlay.show{display:flex}
+.modal{
+  background:var(--cream);border-radius:18px;padding:30px 34px;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);max-width:420px;
+}
+.modal h2{font-size:30px;margin-bottom:8px}
+.modal p{margin-bottom:18px;font-weight:600;color:#444}
+.modal .win{color:var(--green)} .modal .lose{color:var(--red)} .modal .draw{color:var(--blue)}
+
+@media(max-width:560px){
+  .half{width:34px;height:34px}
+  .hand .dom .half{width:36px;height:36px}
+  .tile-back{width:24px;height:44px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>CỜ <span>DOMINO</span></h1>
+  <button class="btn btn-gold" id="newBtn">Ván mới</button>
+</div>
+
+<div class="game-wrap">
+  <div class="felt">
+    <!-- opponent -->
+    <div class="opp-row">
+      <div class="row-label">MÁY<small id="oppCount">7 quân</small></div>
+      <div id="oppHand" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+
+    <!-- table chain -->
+    <div class="table-area">
+      <div class="chain" id="chain"></div>
+    </div>
+
+    <!-- player -->
+    <div class="you-row" style="flex-direction:column;align-items:stretch">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <div class="row-label">BẠN<small id="youCount">7 quân</small></div>
+        <div style="color:var(--cream);font-size:13px" id="endHint"></div>
+      </div>
+      <div class="hand" id="hand"></div>
+    </div>
+
+    <div class="status" id="status">Chọn “Ván mới” để bắt đầu chơi!</div>
+
+    <div class="controls">
+      <button class="btn btn-dark" id="drawBtn" disabled>Bốc quân (kho)</button>
+      <button class="btn btn-red" id="passBtn" disabled>Bỏ lượt</button>
+    </div>
+  </div>
+
+  <div class="side">
+    <h2>CÁCH CHƠI</h2>
+    <ol>
+      <li>Mỗi người có <b>7 quân</b> domino. Bộ có 28 quân (0–0 đến 6–6).</li>
+      <li>Đặt quân nối vào <b>hai đầu</b> của hàng sao cho số khớp nhau.</li>
+      <li>Quân chơi được sẽ <b>sáng viền vàng</b>. Bấm để chọn, rồi chọn đầu nối.</li>
+      <li>Không có quân hợp lệ? <b>Bốc</b> từ kho cho đến khi được, hết kho thì <b>bỏ lượt</b>.</li>
+      <li>Ai hết quân trước thì <b>thắng</b>. Nếu bị khóa, ai ít điểm hơn thắng.</li>
+    </ol>
+    <div class="score">
+      <div class="box"><div class="n" id="scoreYou">0</div><div class="l">Bạn thắng</div></div>
+      <div class="box"><div class="n" id="scoreOpp">0</div><div class="l">Máy thắng</div></div>
+    </div>
+    <div class="boneyard-info">Kho còn: <b id="boneCount">14</b> quân</div>
+  </div>
+</div>
+
+<!-- end selector: which end to place on -->
+<div class="overlay" id="endOverlay">
+  <div class="modal">
+    <h2 style="font-size:22px;color:var(--gold)">Nối vào đầu nào?</h2>
+    <p style="margin-bottom:14px">Quân của bạn khớp với cả hai đầu.</p>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <button class="btn btn-green" id="endLeft">Đầu trái</button>
+      <button class="btn btn-blue" id="endRight">Đầu phải</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="resTitle">Kết thúc</h2>
+    <p id="resText"></p>
+    <button class="btn btn-gold" id="againBtn">Chơi lại</button>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// ---- pip layouts ----
+const PIP_MAP = {
+  0: [],
+  1: ['p-mc'],
+  2: ['p-tl','p-br'],
+  3: ['p-tl','p-mc','p-br'],
+  4: ['p-tl','p-tr','p-bl','p-br'],
+  5: ['p-tl','p-tr','p-mc','p-bl','p-br'],
+  6: ['p-tl','p-tr','p-ml','p-mr','p-bl','p-br'],
+};
+function halfHTML(n){
+  let pips = PIP_MAP[n].map(c=>`<i class="${c}"></i>`).join('');
+  return `<div class="half"><div class="pips">${pips}</div></div>`;
+}
+
+// ---- game state ----
+let bone=[], you=[], opp=[];
+let chain=[];        // array of {a,b} as laid out left->right (a is left-facing, b is right-facing)
+let leftEnd=null, rightEnd=null;
+let turn='you';      // 'you' | 'opp'
+let selIdx=null;     // selected tile index in hand
+let locked=false;    // game over
+let score={you:0,opp:0};
+
+function makeSet(){
+  const t=[];
+  for(let a=0;a<=6;a++) for(let b=a;b<=6;b++) t.push({a,b});
+  return t;
+}
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function newGame(){
+  locked=false; selIdx=null;
+  const set=shuffle(makeSet());
+  you=set.slice(0,7);
+  opp=set.slice(7,14);
+  bone=set.slice(14);
+  chain=[]; leftEnd=null; rightEnd=null;
+
+  // first move: whoever holds the highest double, else highest tile, starts
+  const start = decideStarter();
+  turn = start.who;
+  // auto-play the starting tile
+  placeTile(start.who, start.idx, 'first');
+  if(start.who==='you'){
+    turn='opp';
+    setStatus(`Bạn ra quân mở màn. Đến lượt <b>Máy</b>...`);
+    scheduleOpp();
+  } else {
+    turn='you';
+    setStatus(`Máy ra quân mở màn. Đến lượt <b>bạn</b>!`);
+  }
+  render();
+}
+
+function decideStarter(){
+  // highest double in either hand
+  let best=null; // {who,idx,val,double}
+  const scan=(hand,who)=>{
+    hand.forEach((t,i)=>{
+      const isD=t.a===t.b;
+      const val=t.a+t.b;
+      const rank = (isD?100:0)+val; // doubles preferred
+      if(!best||rank>best.rank) best={who,idx:i,rank};
+    });
+  };
+  scan(you,'you'); scan(opp,'opp');
+  return best;
+}
+
+// place a tile from a hand onto an end. side: 'first'|'left'|'right'
+function placeTile(who, idx, side){
+  const hand = who==='you'?you:opp;
+  const tile = hand.splice(idx,1)[0];
+  if(side==='first'){
+    chain.push({a:tile.a,b:tile.b});
+    leftEnd=tile.a; rightEnd=tile.b;
+    return;
+  }
+  if(side==='left'){
+    // tile must have a value == leftEnd; orient so matching value faces right (toward chain)
+    if(tile.b===leftEnd){ chain.unshift({a:tile.a,b:tile.b}); leftEnd=tile.a; }
+    else { chain.unshift({a:tile.b,b:tile.a}); leftEnd=tile.b; }
+  } else { // right
+    if(tile.a===rightEnd){ chain.push({a:tile.a,b:tile.b}); rightEnd=tile.b; }
+    else { chain.push({a:tile.b,b:tile.a}); rightEnd=tile.a; }
+  }
+}
+
+function tileFits(t){
+  if(chain.length===0) return {left:true,right:true};
+  return {
+    left: t.a===leftEnd || t.b===leftEnd,
+    right: t.a===rightEnd || t.b===rightEnd,
+  };
+}
+function hasMove(hand){
+  return hand.some(t=>{const f=tileFits(t); return f.left||f.right;});
+}
+
+// ---------- rendering ----------
+function domHTML(tile, cls=''){
+  return `<div class="dom h ${cls}">${halfHTML(tile.a)}${halfHTML(tile.b)}</div>`;
+}
+function render(){
+  // opponent backs
+  $('oppHand').innerHTML = opp.map(()=>`<div class="tile-back"></div>`).join('');
+  $('oppCount').textContent = opp.length+' quân';
+  $('youCount').textContent = you.length+' quân';
+  $('boneCount').textContent = bone.length;
+  $('scoreYou').textContent = score.you;
+  $('scoreOpp').textContent = score.opp;
+
+  // chain
+  $('chain').innerHTML = chain.map(t=>{
+    const dbl = t.a===t.b ? 'v':'h';
+    return `<div class="dom ${dbl}">${halfHTML(t.a)}${halfHTML(t.b)}</div>`;
+  }).join('') || `<span style="color:rgba(255,255,255,.5)">Bàn trống</span>`;
+
+  // your hand
+  const yourTurn = turn==='you' && !locked;
+  $('hand').innerHTML = you.map((t,i)=>{
+    const f = tileFits(t);
+    const playable = yourTurn && (f.left||f.right);
+    let cls = playable?'playable':(yourTurn?'dim':'');
+    if(i===selIdx) cls+=' sel';
+    return `<div class="dom ${cls}" data-i="${i}">${halfHTML(t.a)}${halfHTML(t.b)}</div>`;
+  }).join('');
+
+  // buttons
+  const youCanPlay = yourTurn && hasMove(you);
+  $('drawBtn').disabled = !(yourTurn && !youCanPlay && bone.length>0);
+  $('passBtn').disabled = !(yourTurn && !youCanPlay && bone.length===0);
+
+  // end hint
+  if(yourTurn && !youCanPlay && bone.length>0) $('endHint').textContent='Không có quân hợp lệ — hãy bốc từ kho.';
+  else if(yourTurn && !youCanPlay && bone.length===0) $('endHint').textContent='Kho hết — đành bỏ lượt.';
+  else $('endHint').textContent='';
+}
+
+function setStatus(html){ $('status').innerHTML=html; }
+
+// ---------- player interaction ----------
+$('hand').addEventListener('click', e=>{
+  const el = e.target.closest('.dom'); if(!el) return;
+  if(turn!=='you'||locked) return;
+  const i = +el.dataset.i;
+  const t = you[i];
+  const f = tileFits(t);
+  if(!(f.left||f.right)) return; // not playable
+
+  if(chain.length===0 || (f.left && !f.right)){ doYouPlay(i,'left'); return; }
+  if(f.right && !f.left){ doYouPlay(i,'right'); return; }
+  // fits both ends -> ask
+  selIdx=i; render();
+  $('endOverlay').classList.add('show');
+});
+
+$('endLeft').onclick = ()=>{ $('endOverlay').classList.remove('show'); doYouPlay(selIdx,'left'); };
+$('endRight').onclick = ()=>{ $('endOverlay').classList.remove('show'); doYouPlay(selIdx,'right'); };
+
+function doYouPlay(i, side){
+  if(i==null) return;
+  placeTile('you', i, side);
+  selIdx=null;
+  if(you.length===0){ endGame('you'); return; }
+  turn='opp'; render();
+  setStatus(`Bạn vừa ra quân. Đến lượt <b>Máy</b>...`);
+  scheduleOpp();
+}
+
+$('drawBtn').onclick = ()=>{
+  if(turn!=='you'||locked) return;
+  if(bone.length===0) return;
+  you.push(bone.pop());
+  render();
+  if(hasMove(you)) setStatus('Bạn bốc được quân chơi được — hãy ra quân!');
+  else if(bone.length>0) setStatus('Vẫn chưa hợp lệ — bốc tiếp nhé.');
+  else setStatus('Kho đã hết — bạn phải bỏ lượt.');
+};
+
+$('passBtn').onclick = ()=>{
+  if(turn!=='you'||locked) return;
+  turn='opp'; render();
+  setStatus('Bạn bỏ lượt. Đến lượt <b>Máy</b>...');
+  scheduleOpp();
+};
+
+// ---------- AI opponent ----------
+function scheduleOpp(){ setTimeout(oppTurn, 800); }
+
+function oppTurn(){
+  if(locked) return;
+  // draw until a move is possible (or boneyard empty)
+  while(!hasMove(opp) && bone.length>0){
+    opp.push(bone.pop());
+  }
+  render();
+  if(!hasMove(opp)){
+    // opp must pass
+    turn='you';
+    // check double-pass deadlock
+    if(!hasMove(you) && bone.length===0){ endGame('blocked'); return; }
+    setStatus('Máy bỏ lượt (không có quân & kho hết). Đến lượt <b>bạn</b>!');
+    render();
+    return;
+  }
+  // choose best move: prefer playing doubles & high-value tiles to shed points
+  const moves=[];
+  opp.forEach((t,i)=>{
+    const f=tileFits(t);
+    if(f.left) moves.push({i,side:'left',val:t.a+t.b,dbl:t.a===t.b});
+    if(f.right) moves.push({i,side:'right',val:t.a+t.b,dbl:t.a===t.b});
+  });
+  moves.sort((m,n)=> (n.dbl-m.dbl) || (n.val-m.val));
+  const pick = moves[0];
+  setTimeout(()=>{
+    placeTile('opp', pick.i, pick.side);
+    if(opp.length===0){ endGame('opp'); return; }
+    turn='you'; render();
+    // does player have any path forward?
+    if(!hasMove(you) && bone.length===0){
+      setStatus('Máy đã ra quân. Bạn không có quân hợp lệ & kho hết...');
+      // player will be forced to pass -> handled by buttons; but if both stuck -> block
+      if(!hasMove(opp)){ /*not possible here*/ }
+    } else {
+      setStatus('Máy đã ra quân. Đến lượt <b>bạn</b>!');
+    }
+  }, 500);
+}
+
+// ---------- end / scoring ----------
+function pipSum(hand){ return hand.reduce((s,t)=>s+t.a+t.b,0); }
+
+function endGame(reason){
+  locked=true; render();
+  const yt=$('resTitle'), tx=$('resText');
+  let winner;
+  if(reason==='you'){ winner='you'; }
+  else if(reason==='opp'){ winner='opp'; }
+  else { // blocked: fewer pips wins
+    const sy=pipSum(you), so=pipSum(opp);
+    winner = sy<so?'you':(so<sy?'opp':'draw');
+  }
+  if(winner==='you'){ score.you++; yt.innerHTML='<span class="win">Bạn THẮNG! 🎉</span>'; }
+  else if(winner==='opp'){ score.opp++; yt.innerHTML='<span class="lose">Máy thắng 😅</span>'; }
+  else { yt.innerHTML='<span class="draw">Hòa!</span>'; }
+
+  let detail;
+  if(reason==='blocked'){
+    detail=`Bàn bị khóa. Điểm còn lại — Bạn: <b>${pipSum(you)}</b>, Máy: <b>${pipSum(opp)}</b>.`;
+  } else if(winner==='you'){
+    detail=`Bạn đã hết quân trước. Tuyệt vời!`;
+  } else {
+    detail=`Máy đã hết quân trước. Thử lại nào!`;
+  }
+  tx.innerHTML=detail;
+  $('scoreYou').textContent=score.you; $('scoreOpp').textContent=score.opp;
+  $('overlay').classList.add('show');
+}
+
+$('againBtn').onclick = ()=>{ $('overlay').classList.remove('show'); newGame(); };
+$('newBtn').onclick = ()=>{ $('overlay').classList.remove('show'); newGame(); };
+
+// initial idle render
+render();
+</script>
+</body>
+</html>
