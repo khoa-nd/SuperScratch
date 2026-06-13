@@ -211,7 +211,7 @@ h1,h2,h3,.bungee{font-family:'Bungee',cursive;font-weight:400}
     <h3>🐴 Xuất phát</h3>
     <ul>
       <li>Đầu ván, mọi con ngựa đều nằm trong <b>chuồng</b> (ô tròn ở góc).</li>
-      <li>Muốn đưa một con ngựa ra khỏi chuồng, bạn phải <b>gieo được mặt 6</b> (hoặc mặt 1 — xem luật bên dưới). Con ngựa sẽ ra ô xuất phát của màu mình.</li>
+      <li>Phiên bản này chơi theo luật <b>dễ</b>: gieo <b>bất kỳ số nào</b> bạn cũng có thể thả một con ngựa ra ô xuất phát của màu mình (thay vì phải chờ ra mặt 6). Bạn cũng có thể chọn di chuyển con ngựa đã ở trên đường thay vì thả con mới.</li>
     </ul>
 
     <h3>🎲 Cách đi</h3>
@@ -500,10 +500,8 @@ function computeDest(col, ci, die){
   const h=horses[col][ci];
   if(h.state==='done') return null;
   if(h.state==='stable'){
-    if(die===6 || die===1){  // release on 6 or 1 (common house rule)
-      return {type:'track', ring:START[col]};
-    }
-    return null;
+    // Luật dễ chơi: gieo bất kỳ số nào cũng thả được ngựa ra ô xuất phát.
+    return {type:'track', ring:START[col]};
   }
   if(h.state==='home'){
     const ns=h.home+die;
@@ -571,12 +569,18 @@ function afterRoll(){
   movableCache=moves.map(m=>({ci:m.ci}));
   busy=false;
   if(moves.length===0){
-    setHint('Không có nước đi hợp lệ.');
-    log(`↩️ ${COL_NAME[col]} không có nước đi.`);
+    log(`↩️ ${COL_NAME[col]} không đi được nước nào (gieo ${dieVal}).`);
     canMove=false;
-    // if rolled 6, you'd normally re-roll, but with no move just pass (unless extra from 6)
-    if(dieVal===6){ setHint('Không có nước đi, nhưng gieo 6 nên được gieo lại.'); document.getElementById('rollBtn').disabled=false; draw(); return; }
-    setTimeout(nextTurn,800);
+    // gieo 6 thì được gieo lại dù không có nước đi
+    if(dieVal===6){
+      setHint(`🎲 Gieo ${dieVal} nhưng không có ngựa nào đi được — gieo lại nào!`);
+      document.getElementById('rollBtn').disabled=false; draw();
+      if(seats[col]==='ai'){ setTimeout(()=>rollDice(),700); }
+      return;
+    }
+    setHint(`😅 Gieo ${dieVal} nhưng không có ngựa nào đi được — chuyển lượt...`);
+    draw();
+    setTimeout(nextTurn,1400);
     return;
   }
   canMove=true;
