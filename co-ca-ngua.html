@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cờ Cá Ngựa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#1c2b3d; --bg2:#0d1722;
+  --board:#f3ecd8;
+  --ink:#1d1d1b;
+  --cream:#faf5e6;
+  --red:#d6402e;
+  --gold:#c9952c;
+  --green:#2e9e52;
+  --blue:#2a5fb4;
+  --yellow:#f2c12e;
+  /* player colors */
+  --c-red:#e23b2e; --c-blue:#2a6fd6; --c-green:#27a14e; --c-yellow:#e8b007;
+  --c-red-d:#a3261c; --c-blue-d:#1c4d9c; --c-green-d:#1a7338; --c-yellow-d:#a87c00;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Be Vietnam Pro',sans-serif;color:var(--ink);
+  background:
+    radial-gradient(ellipse at 50% 22%, rgba(255,255,255,.07), transparent 60%),
+    linear-gradient(160deg,var(--bg1),var(--bg2));
+  min-height:100vh;padding:14px;
+}
+h1,h2,h3,.bungee{font-family:'Bungee',cursive;font-weight:400}
+
+.topbar{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.topbar h1{
+  color:var(--cream);font-size:clamp(20px,3.4vw,34px);letter-spacing:1px;
+  text-shadow:0 3px 0 rgba(0,0,0,.45),0 0 30px rgba(201,149,44,.3);
+}
+.topbar h1 span{color:var(--gold)}
+.btn{
+  font-family:'Be Vietnam Pro',sans-serif;font-weight:700;font-size:14px;
+  padding:9px 16px;border:none;border-radius:10px;cursor:pointer;
+  background:var(--cream);color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.35);
+  transition:transform .12s,box-shadow .12s,filter .12s;
+}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 5px 0 rgba(0,0,0,.35)}
+.btn:active:not(:disabled){transform:translateY(1px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-red{background:var(--red);color:#fff}
+.btn-gold{background:var(--gold);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-dark{background:#2c2c2c;color:#f3ecd8}
+.btn-big{font-size:16px;padding:12px 22px}
+
+.game-wrap{display:flex;gap:18px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+
+.board-shell{
+  background:linear-gradient(160deg,#fbf6e8,#ece2c6);
+  padding:14px;border-radius:14px;
+  border:5px solid #1a1a1a;
+  box-shadow:0 24px 60px rgba(0,0,0,.55);position:relative;
+}
+#boardCanvas{display:block;cursor:default;touch-action:none}
+
+/* ====== SIDEBAR ====== */
+.sidebar{width:300px;max-width:96vw;display:flex;flex-direction:column;gap:12px}
+.panel{
+  background:var(--cream);border-radius:14px;padding:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);border:2px solid rgba(0,0,0,.55);
+}
+.panel h3{font-size:13px;letter-spacing:1px;margin-bottom:10px;color:#5d4a1f;text-transform:uppercase}
+
+.turn-banner{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:800;font-size:15px;padding:4px 0 10px}
+.turn-banner .dotc{width:20px;height:20px;border-radius:50%;border:2px solid rgba(0,0,0,.4)}
+
+.dice-area{display:flex;flex-direction:column;align-items:center;gap:10px}
+.die{
+  width:58px;height:58px;background:#fff;border:3px solid var(--ink);border-radius:14%;
+  display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:11%;box-shadow:0 4px 0 rgba(0,0,0,.3);
+}
+.die.rolling{animation:shake .45s ease infinite}
+@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-16deg) translateY(-3px)}75%{transform:rotate(14deg) translateY(2px)}}
+.pip{border-radius:50%;background:var(--ink);visibility:hidden}
+.hint{font-size:12.5px;font-weight:600;color:#6b5d3f;text-align:center;min-height:1.3em;line-height:1.45}
+
+.players-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pcard{
+  border-radius:10px;padding:8px;border:2px solid transparent;background:rgba(0,0,0,.04);
+  transition:all .2s;
+}
+.pcard.active{border-color:var(--gold);background:#fdf3da;box-shadow:0 0 0 3px rgba(201,149,44,.25)}
+.pcard .ptop{display:flex;align-items:center;gap:7px;margin-bottom:4px}
+.pcard .dotc{width:18px;height:18px;border-radius:50%;border:2px solid rgba(0,0,0,.35)}
+.pcard .pname{font-weight:800;font-size:13px}
+.pcard .pstat{font-size:11px;color:#555;line-height:1.4}
+.pcard .home-count{font-weight:700}
+
+.log{height:140px;overflow-y:auto;font-size:12px;line-height:1.55;display:flex;flex-direction:column-reverse}
+.log p{padding:3px 6px;border-radius:6px}
+.log p:nth-child(odd){background:rgba(0,0,0,.045)}
+.log b{color:var(--red)}
+
+.rollBtn{width:100%}
+
+/* ====== MODALS ====== */
+.overlay{position:fixed;inset:0;background:rgba(8,16,28,.8);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.overlay.open{display:flex}
+.modal{
+  background:var(--cream);border-radius:18px;max-width:600px;width:100%;
+  max-height:88vh;overflow-y:auto;padding:26px;border:3px solid var(--ink);
+  box-shadow:0 30px 80px rgba(0,0,0,.6);animation:modalIn .3s ease;
+}
+@keyframes modalIn{from{transform:translateY(30px) scale(.96);opacity:0}to{transform:none;opacity:1}}
+.modal h2{color:var(--red);font-size:22px;margin-bottom:14px;letter-spacing:.5px}
+.modal h3{font-size:14px;color:#5d4a1f;margin:16px 0 6px}
+.modal p,.modal li{font-size:14px;line-height:1.65;margin-bottom:6px}
+.modal ul{padding-left:20px;margin-bottom:8px}
+.modal .close-x{float:right;background:none;border:none;font-size:22px;cursor:pointer;font-weight:800;color:#888}
+.modal .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+
+.opt-pick{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.opt-pick button{
+  font-family:'Bungee',cursive;font-size:14px;padding:12px 14px;border-radius:10px;
+  border:2.5px solid var(--ink);background:#fff;cursor:pointer;transition:all .15s;flex:1;min-width:70px;
+}
+.opt-pick button.sel{background:var(--red);color:#fff;transform:translateY(-3px);box-shadow:0 4px 0 var(--ink)}
+
+.seat-setup{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.seat-row{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:10px;background:rgba(0,0,0,.04)}
+.seat-row .dotc{width:18px;height:18px;border-radius:50%;border:2px solid rgba(0,0,0,.35)}
+.seat-row .sname{font-weight:700;font-size:13px;flex:1}
+.seat-row .seat-toggle{display:flex;gap:5px}
+.seat-row .seat-toggle button{
+  font-size:12px;font-weight:700;padding:5px 10px;border-radius:7px;border:2px solid var(--ink);
+  background:#fff;cursor:pointer;
+}
+.seat-row .seat-toggle button.sel{background:var(--ink);color:#fff}
+
+@media (max-width:1050px){
+  .game-wrap{flex-direction:column;align-items:center}
+  .sidebar{width:min(92vw,560px)}
+  .log{height:100px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>🐴 CỜ CÁ <span>NGỰA</span></h1>
+  <button class="btn btn-gold" onclick="openModal('guideModal')">📖 Hướng Dẫn</button>
+  <button class="btn btn-dark" onclick="openModal('setupModal')">🔄 Ván Mới</button>
+</div>
+
+<div class="game-wrap">
+  <div class="board-shell">
+    <canvas id="boardCanvas" width="640" height="640"></canvas>
+  </div>
+
+  <div class="sidebar">
+    <div class="panel">
+      <h3>🎲 Lượt Chơi</h3>
+      <div class="turn-banner" id="turnBanner"></div>
+      <div class="dice-area">
+        <div class="die" id="die1"></div>
+        <button class="btn btn-red btn-big rollBtn" id="rollBtn" onclick="rollDice()">🎲 Gieo Xúc Xắc</button>
+        <div class="hint" id="hint">Gieo xúc xắc để bắt đầu lượt.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>👥 Người Chơi</h3>
+      <div class="players-grid" id="playersGrid"></div>
+    </div>
+
+    <div class="panel">
+      <h3>📜 Nhật Ký</h3>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SETUP ===== -->
+<div class="overlay open" id="setupModal">
+  <div class="modal">
+    <h2>🐴 Bắt Đầu Ván Cờ Cá Ngựa</h2>
+    <p style="font-weight:600">Số lượng quân ngựa mỗi người:</p>
+    <div class="opt-pick" id="horsePick"></div>
+    <p style="font-weight:600">Người chơi (mỗi màu một góc):</p>
+    <div class="seat-setup" id="seatSetup"></div>
+    <p style="font-size:12px;color:#777"><i>Chọn "Người" hoặc "Máy" cho từng màu. Tắt một màu bằng nút "Trống" (cần ít nhất 2 màu chơi).</i></p>
+    <div class="modal-actions">
+      <button class="btn btn-gold" onclick="openModal('guideModal')">📖 Hướng dẫn</button>
+      <button class="btn btn-red btn-big" onclick="startGame()">🚀 Chơi Ngay!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GUIDE ===== -->
+<div class="overlay" id="guideModal">
+  <div class="modal">
+    <button class="close-x" onclick="closeModal('guideModal')">✕</button>
+    <h2>📖 Hướng Dẫn Chơi Cờ Cá Ngựa</h2>
+
+    <h3>🎯 Mục tiêu</h3>
+    <p>Mỗi người chơi có một bầy <b>ngựa</b> cùng màu. Hãy đưa <b>tất cả ngựa</b> của bạn đi hết một vòng quanh bàn cờ rồi leo lên <b>chuồng đích</b> (cầu thang về đích) ở giữa. Ai đưa <b>toàn bộ ngựa về đích trước</b> sẽ thắng! 🏆</p>
+
+    <h3>🐴 Xuất phát</h3>
+    <ul>
+      <li>Đầu ván, mọi con ngựa đều nằm trong <b>chuồng</b> (ô tròn ở góc).</li>
+      <li>Muốn đưa một con ngựa ra khỏi chuồng, bạn phải <b>gieo được mặt 6</b> (hoặc mặt 1 — xem luật bên dưới). Con ngựa sẽ ra ô xuất phát của màu mình.</li>
+    </ul>
+
+    <h3>🎲 Cách đi</h3>
+    <ul>
+      <li>Tới lượt, nhấn <b>Gieo Xúc Xắc</b> rồi <b>nhấn vào con ngựa</b> muốn di chuyển. Ngựa đi số ô đúng bằng số chấm gieo được, theo chiều kim đồng hồ quanh đường viền.</li>
+      <li>Gieo được <b>mặt 6</b>: ngựa được đi (hoặc ra chuồng), và bạn <b>được gieo thêm lượt nữa</b>! Gieo 6 ba lần liên tiếp thì mất lượt (chống ăn gian).</li>
+      <li>Nếu không có nước đi hợp lệ, lượt sẽ tự chuyển sang người kế tiếp.</li>
+    </ul>
+
+    <h3>⚔️ Đá ngựa (ăn quân)</h3>
+    <ul>
+      <li>Nếu ngựa của bạn dừng đúng ô đang có <b>ngựa đối thủ</b>, ngựa đó bị <b>đá về chuồng</b> và phải bắt đầu lại từ đầu!</li>
+      <li>Nhiều ngựa <b>không thể</b> chồng lên nhau trên cùng một ô đường đua (trừ ô an toàn của riêng mỗi màu thì game này cho phép cùng màu chồng).</li>
+    </ul>
+
+    <h3>🏠 Về chuồng đích</h3>
+    <ul>
+      <li>Sau khi đi hết một vòng, ngựa rẽ vào <b>cầu thang về đích</b> của màu mình (6 bậc đánh số 1→6).</li>
+      <li>Phải gieo <b>đúng số</b> để bước lên bậc và <b>chạm đỉnh</b>. Gieo quá số cần thiết thì <b>không đi được</b> con ngựa đó (phải chọn con khác hoặc mất lượt).</li>
+      <li>Ngựa đã lên bậc đích thì <b>an toàn tuyệt đối</b>, không bị đá nữa.</li>
+    </ul>
+
+    <h3>🏆 Chiến thắng</h3>
+    <p>Người đầu tiên đưa được <b>tất cả</b> ngựa của mình lên các bậc cao nhất của chuồng đích sẽ chiến thắng!</p>
+
+    <h3>💡 Mẹo</h3>
+    <ul>
+      <li>Ưu tiên thả ngựa ra chuồng sớm khi gieo được 6.</li>
+      <li>Canh đá ngựa đối thủ đang gần về đích để làm chậm họ.</li>
+      <li>Đừng để ngựa kẹt sát đích vì lỡ gieo quá số.</li>
+    </ul>
+
+    <div class="modal-actions">
+      <button class="btn btn-red" onclick="closeModal('guideModal')">Đã hiểu, phi thôi! 🐎</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RESULT ===== -->
+<div class="overlay" id="resultModal">
+  <div class="modal" style="text-align:center">
+    <h2 style="font-size:28px">🏆 CHIẾN THẮNG!</h2>
+    <p id="resultText" style="font-size:18px;font-weight:700;margin:14px 0;line-height:1.6"></p>
+    <div class="modal-actions" style="justify-content:center">
+      <button class="btn btn-red btn-big" onclick="openModal('setupModal')">🔄 Ván Mới</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =======================================================================
+   CỜ CÁ NGỰA  (Vietnamese Ludo / Parchís variant)
+   Track model: shared ring of 56 cells (4 sides * 14). Each color enters
+   the ring at its own start cell and, after one full loop, branches into a
+   6-step private "home stretch" (cầu thang về đích).
+   ======================================================================= */
+
+const COLORS=['red','blue','green','yellow'];
+const COL_HEX={red:'#e23b2e',blue:'#2a6fd6',green:'#27a14e',yellow:'#e8b007'};
+const COL_DARK={red:'#a3261c',blue:'#1c4d9c',green:'#1a7338',yellow:'#a87c00'};
+const COL_NAME={red:'Đỏ',blue:'Xanh dương',green:'Xanh lá',yellow:'Vàng'};
+const COL_NAME_SHORT={red:'Đỏ',blue:'Xanh',green:'Lá',yellow:'Vàng'};
+
+const RING=56;                  // cells around the loop
+// start cell index on the ring for each color (clockwise)
+const START={red:1, blue:15, green:29, yellow:43};
+// the ring index a color reaches after a full lap, where it peels off
+// into its private home stretch (the colored "mid" cell of its arm)
+const ENTRY={red:55, blue:13, green:27, yellow:41};
+const HOME_LEN=6;
+
+let NUM_HORSES=4;
+let seats={};                   // color -> 'human' | 'ai' | 'off'
+let players=[];                 // active colors in play order
+let cur=0;                      // index into players
+let horses={};                  // color -> [ {state, ring, home} x NUM_HORSES ]
+//  state: 'stable' (in chuồng), 'track' (on ring), 'home' (on stairs), 'done'
+//  ring: ring index (0..55) when on track
+//  home: home-step index (0..HOME_LEN-1) when on stairs/done
+
+let dieVal=0;
+let canMove=false;              // a roll is pending consumption
+let sixStreak=0;
+let busy=false;
+let gameOver=false;
+let movableCache=[];            // [{ci, label}]
+
+const canvas=document.getElementById('boardCanvas');
+const ctx=canvas.getContext('2d');
+let PX=640, CELL=0, ORIGIN=0;
+
+/* ===================== GEOMETRY ===================== */
+/* We lay the ring on a 15x15 grid cross (classic Ludo). Map ring index -> (gx,gy).
+   Build the path clockwise starting at red's start (left-mid going up? ) — we
+   define explicit coordinates for clarity. Grid is 15 wide (0..14). */
+let ringPts=[];   // [ {x,y} ] length 56  (grid coords)
+let homePts={};   // color -> [ {x,y} ] length 6
+let stablePts={}; // color -> [ {x,y} ] length 4 (chuồng slots) -> we place up to NUM_HORSES
+let startCellOf={};
+
+function buildGeometry(){
+  ringPts=[]; homePts={}; stablePts={};
+  // Classic Ludo cross path on a 15x15 grid (col x 0..14, row y 0..14).
+  // 56 cells, fully connected clockwise, each step orthogonal. Verified.
+  const path=[];
+  const add=arr=>arr.forEach(p=>path.push({x:p[0],y:p[1]}));
+  // left arm -> top
+  add([[0,6],[1,6],[2,6],[3,6],[4,6],[5,6]]); add([[6,6]]);
+  add([[6,5],[6,4],[6,3],[6,2],[6,1],[6,0]]); add([[7,0]]);
+  // top arm -> right
+  add([[8,0]]); add([[8,1],[8,2],[8,3],[8,4],[8,5]]); add([[8,6]]);
+  add([[9,6],[10,6],[11,6],[12,6],[13,6],[14,6]]); add([[14,7]]);
+  // right arm -> bottom
+  add([[14,8]]); add([[13,8],[12,8],[11,8],[10,8],[9,8]]); add([[8,8]]);
+  add([[8,9],[8,10],[8,11],[8,12],[8,13],[8,14]]); add([[7,14]]);
+  // bottom arm -> left
+  add([[6,14]]); add([[6,13],[6,12],[6,11],[6,10],[6,9]]); add([[6,8]]);
+  add([[5,8],[4,8],[3,8],[2,8],[1,8],[0,8]]); add([[0,7]]);
+  ringPts=path; // index 0 == (0,6); red start = index 1
+
+  // home stretches: 6 cells from each arm's colored mid cell toward center
+  homePts.red    = [ {x:1,y:7},{x:2,y:7},{x:3,y:7},{x:4,y:7},{x:5,y:7},{x:6,y:7} ];
+  homePts.blue   = [ {x:7,y:1},{x:7,y:2},{x:7,y:3},{x:7,y:4},{x:7,y:5},{x:7,y:6} ];
+  homePts.green  = [ {x:13,y:7},{x:12,y:7},{x:11,y:7},{x:10,y:7},{x:9,y:7},{x:8,y:7} ];
+  homePts.yellow = [ {x:7,y:13},{x:7,y:12},{x:7,y:11},{x:7,y:10},{x:7,y:9},{x:7,y:8} ];
+
+  // stables (chuồng) — 2x2 cluster in each corner
+  stablePts.red    = [ {x:1.4,y:1.4},{x:3.4,y:1.4},{x:1.4,y:3.4},{x:3.4,y:3.4} ];
+  stablePts.blue   = [ {x:10.6,y:1.4},{x:12.6,y:1.4},{x:10.6,y:3.4},{x:12.6,y:3.4} ];
+  stablePts.green  = [ {x:10.6,y:10.6},{x:12.6,y:10.6},{x:10.6,y:12.6},{x:12.6,y:12.6} ];
+  stablePts.yellow = [ {x:1.4,y:10.6},{x:3.4,y:10.6},{x:1.4,y:12.6},{x:3.4,y:12.6} ];
+
+  startCellOf={red:START.red, blue:START.blue, green:START.green, yellow:START.yellow};
+}
+
+/* ===================== RENDER ===================== */
+function resizeCanvas(){
+  const maxW=Math.min(window.innerWidth-40, 680);
+  const size=Math.min(maxW, window.innerHeight-130, 680);
+  PX=Math.max(320, Math.floor(size));
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=PX*dpr; canvas.height=PX*dpr;
+  canvas.style.width=PX+'px'; canvas.style.height=PX+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  CELL=PX/15;
+  draw();
+}
+const gx=x=>(x+0.5)*CELL;
+const gy=y=>(y+0.5)*CELL;
+
+function draw(){
+  ctx.clearRect(0,0,PX,PX);
+  // colored corner quadrants
+  const q=CELL*6;
+  drawCornerBox(0,0,q,'red');
+  drawCornerBox(PX-q,0,q,'blue');
+  drawCornerBox(PX-q,PX-q,q,'green');
+  drawCornerBox(0,PX-q,q,'yellow');
+
+  // ring cells
+  ringPts.forEach((p,i)=>{
+    let fill='#fff';
+    // color the start cells
+    for(const c of COLORS){ if(START[c]===i) fill=COL_HEX[c]; }
+    drawCell(p.x,p.y,fill);
+  });
+  // home stretches
+  for(const c of COLORS){
+    homePts[c].forEach(p=> drawCell(p.x,p.y, COL_HEX[c], true));
+  }
+  // center triangle / finish
+  drawCenter();
+
+  // stable slots
+  for(const c of COLORS){
+    stablePts[c].slice(0,NUM_HORSES).forEach(p=>{
+      ctx.beginPath(); ctx.arc(gx(p.x),gy(p.y),CELL*0.42,0,7);
+      ctx.fillStyle='rgba(255,255,255,.55)'; ctx.fill();
+      ctx.strokeStyle=COL_DARK[c]; ctx.lineWidth=2; ctx.stroke();
+    });
+  }
+
+  // highlight movable horses' targets
+  if(canMove && !busy){
+    movableCache.forEach(m=>{
+      const pos=horsePixel(players[cur], m.ci, true);
+      if(pos){
+        ctx.beginPath(); ctx.arc(pos.x,pos.y,CELL*0.46,0,7);
+        ctx.strokeStyle='#111'; ctx.setLineDash([4,3]); ctx.lineWidth=3; ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    });
+  }
+
+  // draw horses
+  for(const c of players){
+    horses[c].forEach((h,ci)=> drawHorse(c,ci,h));
+  }
+}
+function drawCornerBox(px,py,sz,col){
+  ctx.fillStyle=COL_HEX[col];
+  roundRect(px+2,py+2,sz-4,sz-4,10); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.78)';
+  roundRect(px+sz*0.16,py+sz*0.16,sz*0.68,sz*0.68,8); ctx.fill();
+}
+function drawCell(x,y,fill,home){
+  const s=CELL*0.92, px=gx(x)-s/2, py=gy(y)-s/2;
+  ctx.fillStyle=fill;
+  roundRect(px,py,s,s,4); ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,.4)'; ctx.lineWidth=1.2; ctx.stroke();
+}
+function drawCenter(){
+  const c=gx(7), s=CELL*2.4;
+  ctx.save();
+  // four triangles pointing to center
+  const tris=[
+    {p:[[7-1.5,7-1.5],[7+1.5,7-1.5],[7,7]],col:'blue'},
+    {p:[[7+1.5,7-1.5],[7+1.5,7+1.5],[7,7]],col:'green'},
+    {p:[[7+1.5,7+1.5],[7-1.5,7+1.5],[7,7]],col:'yellow'},
+    {p:[[7-1.5,7+1.5],[7-1.5,7-1.5],[7,7]],col:'red'},
+  ];
+  tris.forEach(t=>{
+    ctx.beginPath();
+    ctx.moveTo(gx(t.p[0][0]),gy(t.p[0][1]));
+    ctx.lineTo(gx(t.p[1][0]),gy(t.p[1][1]));
+    ctx.lineTo(gx(t.p[2][0]),gy(t.p[2][1]));
+    ctx.closePath();
+    ctx.fillStyle=COL_HEX[t.col]; ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,.4)'; ctx.lineWidth=1; ctx.stroke();
+  });
+  ctx.fillStyle='#fff'; ctx.font=`bold ${CELL*0.9}px serif`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('🏆', c, gy(7));
+  ctx.restore();
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+
+function horsePixel(col, ci, isTarget){
+  const h=horses[col][ci];
+  if(h.state==='stable'){
+    const p=stablePts[col][ci % stablePts[col].length];
+    return {x:gx(p.x), y:gy(p.y)};
+  }
+  if(h.state==='track'){
+    const p=ringPts[h.ring];
+    return {x:gx(p.x), y:gy(p.y)};
+  }
+  if(h.state==='home' || h.state==='done'){
+    const p=homePts[col][Math.min(h.home,HOME_LEN-1)];
+    return {x:gx(p.x), y:gy(p.y)};
+  }
+  return null;
+}
+function drawHorse(col,ci,h){
+  const pos=horsePixel(col,ci);
+  if(!pos) return;
+  // offset slightly if multiple same-color horses share a track cell
+  let ox=0, oy=0;
+  if(h.state==='track'){
+    const same=horses[col].filter((o,j)=>o.state==='track'&&o.ring===h.ring);
+    if(same.length>1){
+      const k=same.indexOf(h);
+      ox=(k%2?1:-1)*CELL*0.16; oy=(k<2?-1:1)*CELL*0.16;
+    }
+  }
+  const x=pos.x+ox, y=pos.y+oy, rad=CELL*0.34;
+  ctx.save();
+  ctx.beginPath(); ctx.arc(x+1.5,y+2,rad,0,7); ctx.fillStyle='rgba(0,0,0,.3)'; ctx.fill();
+  const g=ctx.createRadialGradient(x-rad*0.4,y-rad*0.4,rad*0.1,x,y,rad);
+  g.addColorStop(0,'#fff'); g.addColorStop(.25,COL_HEX[col]); g.addColorStop(1,COL_DARK[col]);
+  ctx.beginPath(); ctx.arc(x,y,rad,0,7); ctx.fillStyle=g; ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,.45)'; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.font=`${rad*1.3}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('🐴', x, y+1);
+  ctx.restore();
+}
+
+/* ===================== MOVE LOGIC ===================== */
+/* Compute destination of a horse given die value. Returns:
+   {type:'release'} | {type:'track', ring} | {type:'home', step} | null (illegal) */
+function computeDest(col, ci, die){
+  const h=horses[col][ci];
+  if(h.state==='done') return null;
+  if(h.state==='stable'){
+    if(die===6 || die===1){  // release on 6 or 1 (common house rule)
+      return {type:'track', ring:START[col]};
+    }
+    return null;
+  }
+  if(h.state==='home'){
+    const ns=h.home+die;
+    if(ns<HOME_LEN) return {type:'home', step:ns};
+    return null; // overshoot past the top step — illegal
+  }
+  // on track: walk forward, possibly entering home stretch
+  // distance from current ring to this color's ENTRY (the lap-completion cell)
+  let stepsToEntry=(ENTRY[col]-h.ring+RING)%RING;
+  if(die<=stepsToEntry){
+    return {type:'track', ring:(h.ring+die)%RING};
+  } else {
+    // entering home stretch
+    const into=die-stepsToEntry-1; // 0-based home step
+    if(into<HOME_LEN) return {type:'home', step:into};
+    return null; // overshoot beyond top
+  }
+}
+
+function legalMoves(col, die){
+  const moves=[];
+  horses[col].forEach((h,ci)=>{
+    const d=computeDest(col,ci,die);
+    if(!d) return;
+    // can't land on a track cell occupied by SAME color (block) unless it's a start cell
+    if(d.type==='track'){
+      const occSame=horses[col].some((o,j)=>j!==ci&&o.state==='track'&&o.ring===d.ring);
+      if(occSame) return;
+    }
+    moves.push({ci, dest:d});
+  });
+  return moves;
+}
+
+function rollDice(){
+  if(busy||gameOver) return;
+  if(canMove) return; // must move first
+  const col=players[cur];
+  busy=true; document.getElementById('rollBtn').disabled=true;
+  const die=document.getElementById('die1');
+  die.classList.add('rolling');
+  let n=0;
+  const iv=setInterval(()=>{
+    renderDie(1+Math.floor(Math.random()*6));
+    if(++n>=8){
+      clearInterval(iv); die.classList.remove('rolling');
+      dieVal=1+Math.floor(Math.random()*6);
+      renderDie(dieVal);
+      log(`🎲 ${COL_NAME[col]} gieo được <b>${dieVal}</b>.`);
+      afterRoll();
+    }
+  },70);
+}
+function afterRoll(){
+  const col=players[cur];
+  if(dieVal===6){ sixStreak++; } else sixStreak=0;
+  if(sixStreak>=3){
+    log(`🚫 ${COL_NAME[col]} gieo 6 ba lần liên tiếp — mất lượt!`);
+    sixStreak=0; busy=false; canMove=false;
+    setHint('Gieo 6 ba lần liên tiếp, mất lượt.');
+    setTimeout(nextTurn,700);
+    return;
+  }
+  const moves=legalMoves(col,dieVal);
+  movableCache=moves.map(m=>({ci:m.ci}));
+  busy=false;
+  if(moves.length===0){
+    setHint('Không có nước đi hợp lệ.');
+    log(`↩️ ${COL_NAME[col]} không có nước đi.`);
+    canMove=false;
+    // if rolled 6, you'd normally re-roll, but with no move just pass (unless extra from 6)
+    if(dieVal===6){ setHint('Không có nước đi, nhưng gieo 6 nên được gieo lại.'); document.getElementById('rollBtn').disabled=false; draw(); return; }
+    setTimeout(nextTurn,800);
+    return;
+  }
+  canMove=true;
+  draw();
+  if(seats[col]==='ai'){
+    setHint('🤖 Máy đang chọn nước đi...');
+    setTimeout(()=>aiPick(moves),600);
+  } else {
+    setHint(moves.length===1?'Nhấn con ngựa được khoanh để đi.':'Nhấn vào con ngựa bạn muốn di chuyển.');
+  }
+}
+
+function aiPick(moves){
+  // heuristic scoring
+  let best=moves[0], bestSc=-1e9;
+  const col=players[cur];
+  for(const m of moves){
+    let sc=0;
+    const d=m.dest;
+    if(d.type==='home'){ sc+=40+d.step*6; }       // progress into home good
+    if(d.type==='track'){
+      // capture?
+      const victim=horseAtRing(d.ring, col);
+      if(victim){ sc+=50 + lapProgress(victim.col,victim.ci)*0.5; }
+      // progress
+      sc+=lapProgress(col,m.ci)*0.3 + 5;
+    }
+    if(horses[col][m.ci].state==='stable') sc+=25; // release
+    sc+=Math.random()*3;
+    if(sc>bestSc){bestSc=sc;best=m;}
+  }
+  applyMove(best.ci);
+}
+
+function clickHorse(px,py){
+  if(!canMove||busy||gameOver) return;
+  const col=players[cur];
+  if(seats[col]==='ai') return;
+  const moves=legalMoves(col,dieVal);
+  // find clicked horse among movable
+  let pick=null, bestD=CELL*0.6;
+  for(const m of moves){
+    const pos=horsePixel(col,m.ci);
+    if(!pos) continue;
+    const d=Math.hypot(px-pos.x, py-pos.y);
+    if(d<bestD){ bestD=d; pick=m.ci; }
+  }
+  if(pick!==null) applyMove(pick);
+  else setHint('Hãy nhấn vào một con ngựa được khoanh nét đứt.');
+}
+
+function applyMove(ci){
+  if(busy||gameOver) return;
+  const col=players[cur];
+  const d=computeDest(col,ci,dieVal);
+  if(!d) return;
+  busy=true; canMove=false; movableCache=[];
+  const h=horses[col][ci];
+
+  if(h.state==='stable'){
+    h.state='track'; h.ring=d.ring;
+    log(`🐎 ${COL_NAME[col]} thả 1 ngựa ra chuồng.`);
+    checkCapture(col,ci,d.ring);
+    finishMove(col, dieVal===6);
+    return;
+  }
+  if(d.type==='track'){
+    h.ring=d.ring;
+    checkCapture(col,ci,d.ring);
+  } else { // home
+    h.state='home'; h.home=d.step;
+    if(d.step===HOME_LEN-1){ h.state='done'; log(`🏠 ${COL_NAME[col]} đưa 1 ngựa về ĐÍCH!`); }
+  }
+  finishMove(col, dieVal===6);
+}
+function checkCapture(col,ci,ring){
+  for(const oc of players){
+    if(oc===col) continue;
+    horses[oc].forEach((o,j)=>{
+      if(o.state==='track' && o.ring===ring){
+        o.state='stable'; o.ring=-1;
+        log(`⚔️ ${COL_NAME[col]} <b>đá</b> 1 ngựa ${COL_NAME[oc]} về chuồng!`);
+      }
+    });
+  }
+}
+function horseAtRing(ring, exceptCol){
+  for(const oc of players){
+    if(oc===exceptCol) continue;
+    const j=horses[oc].findIndex(o=>o.state==='track'&&o.ring===ring);
+    if(j>=0) return {col:oc, ci:j};
+  }
+  return null;
+}
+function lapProgress(col,ci){
+  const h=horses[col][ci];
+  if(h.state==='stable') return 0;
+  if(h.state==='done') return 100;
+  if(h.state==='home') return 60+h.home;
+  return ((h.ring-START[col]+RING)%RING);
+}
+
+function finishMove(col, gotSix){
+  draw();
+  // win check
+  if(horses[col].every(h=>h.state==='done')){
+    gameOver=true; busy=false;
+    log(`🏆 ${COL_NAME[col]} đã đưa hết ngựa về đích!`);
+    document.getElementById('resultText').innerHTML=
+      `<span style="color:${COL_HEX[col]}">${COL_NAME[col]}</span> CHIẾN THẮNG! 🐴🏆`;
+    updateUI();
+    openModal('resultModal');
+    return;
+  }
+  busy=false;
+  if(gotSix){
+    sixStreak = sixStreak; // keep streak
+    setHint('🎉 Gieo 6 — được gieo thêm lượt!');
+    document.getElementById('rollBtn').disabled=false;
+    updateUI();
+    if(seats[col]==='ai'){ setTimeout(()=>rollDice(),600); }
+    return;
+  }
+  sixStreak=0;
+  setTimeout(nextTurn,500);
+}
+function nextTurn(){
+  if(gameOver) return;
+  cur=(cur+1)%players.length;
+  dieVal=0; canMove=false; sixStreak=0;
+  renderDie(0);
+  updateUI();
+  const col=players[cur];
+  setHint(`Lượt của ${COL_NAME[col]}. Gieo xúc xắc!`);
+  document.getElementById('rollBtn').disabled=false;
+  if(seats[col]==='ai'){ document.getElementById('rollBtn').disabled=true; setTimeout(()=>rollDice(),650); }
+}
+
+/* ===================== DICE RENDER ===================== */
+function renderDie(v){
+  const PIPS={0:[],1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+  const die=document.getElementById('die1');
+  die.innerHTML=Array.from({length:9},(_,i)=>
+    `<div class="pip" style="visibility:${(PIPS[v]||[]).includes(i)?'visible':'hidden'}"></div>`).join('');
+}
+
+/* ===================== UI ===================== */
+function updateUI(){
+  const grid=document.getElementById('playersGrid'); grid.innerHTML='';
+  players.forEach((c,i)=>{
+    const done=horses[c].filter(h=>h.state==='done').length;
+    const onTrack=horses[c].filter(h=>h.state==='track'||h.state==='home').length;
+    const stable=horses[c].filter(h=>h.state==='stable').length;
+    const div=document.createElement('div');
+    div.className='pcard'+(i===cur&&!gameOver?' active':'');
+    div.innerHTML=`
+      <div class="ptop"><span class="dotc" style="background:${COL_HEX[c]}"></span>
+        <span class="pname">${COL_NAME[c]}${seats[c]==='ai'?' 🤖':''}</span></div>
+      <div class="pstat">🏠 Về đích: <span class="home-count">${done}/${NUM_HORSES}</span><br>
+        🏇 Trên đường: ${onTrack} · Chuồng: ${stable}</div>`;
+    grid.appendChild(div);
+  });
+  const tb=document.getElementById('turnBanner');
+  if(gameOver){ tb.innerHTML='<b>Ván đã kết thúc</b>'; }
+  else{
+    const c=players[cur];
+    tb.innerHTML=`<span class="dotc" style="background:${COL_HEX[c]}"></span> Lượt: <b>&nbsp;${COL_NAME[c]}</b>${seats[c]==='ai'?' (Máy)':''}`;
+  }
+}
+function setHint(m){document.getElementById('hint').textContent=m||'';}
+function log(m){const el=document.getElementById('log');const p=document.createElement('p');p.innerHTML=m;el.prepend(p);}
+
+/* ===================== INPUT ===================== */
+function evtPt(e){
+  const rect=canvas.getBoundingClientRect();
+  const cx=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
+  const cy=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+  return [cx,cy];
+}
+canvas.addEventListener('click',e=>{const[x,y]=evtPt(e);clickHorse(x,y);});
+canvas.addEventListener('touchstart',e=>{e.preventDefault();const[x,y]=evtPt(e);clickHorse(x,y);},{passive:false});
+
+/* ===================== SETUP ===================== */
+let pendHorses=4;
+let pendSeats={red:'human',blue:'ai',green:'ai',yellow:'off'};
+function renderSetup(){
+  const hp=document.getElementById('horsePick'); hp.innerHTML='';
+  [1,2,3,4].forEach(n=>{
+    const b=document.createElement('button'); b.textContent=n+' ngựa';
+    if(n===pendHorses) b.classList.add('sel');
+    b.onclick=()=>{pendHorses=n;renderSetup();};
+    hp.appendChild(b);
+  });
+  const ss=document.getElementById('seatSetup'); ss.innerHTML='';
+  COLORS.forEach(c=>{
+    const row=document.createElement('div'); row.className='seat-row';
+    row.innerHTML=`<span class="dotc" style="background:${COL_HEX[c]}"></span>
+      <span class="sname">${COL_NAME[c]}</span>
+      <div class="seat-toggle" data-col="${c}"></div>`;
+    ss.appendChild(row);
+    const tg=row.querySelector('.seat-toggle');
+    [['human','Người'],['ai','Máy'],['off','Trống']].forEach(([v,lab])=>{
+      const b=document.createElement('button'); b.textContent=lab;
+      if(pendSeats[c]===v) b.classList.add('sel');
+      b.onclick=()=>{pendSeats[c]=v;renderSetup();};
+      tg.appendChild(b);
+    });
+  });
+}
+function startGame(){
+  const active=COLORS.filter(c=>pendSeats[c]!=='off');
+  if(active.length<2){ alert('Cần ít nhất 2 màu tham gia (Người hoặc Máy)!'); return; }
+  NUM_HORSES=pendHorses;
+  seats={}; COLORS.forEach(c=>seats[c]=pendSeats[c]);
+  players=active;
+  cur=0; dieVal=0; canMove=false; sixStreak=0; busy=false; gameOver=false;
+  horses={};
+  players.forEach(c=>{
+    horses[c]=Array.from({length:NUM_HORSES},()=>({state:'stable',ring:-1,home:-1}));
+  });
+  buildGeometry();
+  closeModal('setupModal');
+  document.getElementById('log').innerHTML='';
+  log(`🎮 Ván mới: ${players.map(c=>COL_NAME_SHORT[c]+(seats[c]==='ai'?'(Máy)':'')).join(', ')} — mỗi bên ${NUM_HORSES} ngựa.`);
+  renderDie(0);
+  resizeCanvas();
+  updateUI();
+  const col=players[cur];
+  setHint(`Lượt của ${COL_NAME[col]}. Gieo xúc xắc!`);
+  if(seats[col]==='ai'){ document.getElementById('rollBtn').disabled=true; setTimeout(()=>rollDice(),700); }
+}
+
+/* ===================== MODALS ===================== */
+function openModal(id){ if(id==='setupModal') renderSetup(); document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(ov=>{
+  ov.addEventListener('click',e=>{ if(e.target===ov && ov.id!=='setupModal' && ov.id!=='resultModal') ov.classList.remove('open'); });
+});
+
+/* ===================== INIT ===================== */
+window.addEventListener('resize',()=>{ if(players.length) resizeCanvas(); });
+buildGeometry();
+renderSetup();
+renderDie(0);
+resizeCanvas();
+</script>
+</body>
+</html>
